@@ -1,12 +1,12 @@
 {
-  "name": "server",
+  "name": "graphql-server",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Tim Andersson",
   "license": "ISC",
   "dependencies": {
     "apollo-server-core": "github:timandersson/apollo-server-core",
