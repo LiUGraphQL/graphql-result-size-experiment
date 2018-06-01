@@ -33,7 +33,7 @@ type Product {
   offers: [Offer] @Offer(id: "nr", relation: "product")
   producer: Producer @Product(id: "producer", relation: "nr")
   type: ProductType @producttypeproduct(id: "productType", relation: "product")
-  productFeature: [ProductFeature] @Productfeatureproduct(id: "productFeature", relation: "product")
+  productFeature(limit: Int): [ProductFeature] @Productfeatureproduct(id: "productFeature", relation: "product")
   reviews: [Review] @Review(id: "nr", relation: "product")
 }
 
@@ -48,7 +48,7 @@ type ProductFeature {
   nr: ID
   label: String
   comment: String
-  products: [Product] @Productfeatureproduct(id: "product", relation: "productFeature")
+  products(limit: Int): [Product] @Productfeatureproduct(id: "product", relation: "productFeature")
 }
 
 type Producer {
@@ -79,6 +79,7 @@ type Person {
   mbox_sha1sum: String
   country: String
   reviews: [Review] @Review(id: "nr", relation: "person")
+  knows: [Person] @Knowsperson(id: "friend", relation: "person")
 }
 
 
@@ -126,6 +127,9 @@ const resolvers = {
   Person: {
     reviews(person, args, context) {
       return context.db.all('SELECT nr,title,text,reviewDate,rating1,rating2,rating3,rating4,product,person FROM Review WHERE person = $pid', {$pid: person.nr});
+    },
+    knows(person, args, context){
+      return context.db.all('SELECT nr,name,mbox_sha1sum,country FROM Person p LEFT JOIN knowsperson kp on p.nr = kp.friend WHERE kp.person = $pid', {$pid: person.nr});
     }
   },
   Product: {
@@ -135,8 +139,13 @@ const resolvers = {
     type(product, args, context){
       return context.db.get('SELECT nr,label,comment FROM producttype p LEFT JOIN producttypeproduct ptp on p.nr = ptp.productType WHERE ptp.product = $pr_id', {$pr_id: product.nr});
     },
-    productFeature(product, args, context){
-      return context.db.all('SELECT nr,label,comment FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product = $pr_id;', {$pr_id: product.nr});
+    productFeature(product, {limit}, context){
+      if(limit){
+        return context.db.all('SELECT nr,label,comment FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product = $pr_id LIMIT $limit;', {$pr_id: product.nr, $limit: limit});
+      }
+      else{
+        return context.db.all('SELECT nr,label,comment FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product = $pr_id;', {$pr_id: product.nr});
+      }
     },
     reviews(product, args, context) {
       return context.db.all('SELECT nr,title,text,reviewDate,rating1,rating2,rating3,rating4,product,person FROM Review WHERE product = $pr_id', {$pr_id: product.nr});
@@ -146,8 +155,13 @@ const resolvers = {
     }
   },
   ProductFeature: {
-    products(feature, args, context){
-      return context.db.all('SELECT nr,label,comment,producer FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature = $fid;', {$fid: feature.nr});
+    products(feature, {limit}, context){
+      if (limit){
+        return context.db.all('SELECT nr,label,comment,producer FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature = $fid LIMIT $limit;', {$fid: feature.nr, $limit: limit});
+      }
+      else{
+        return context.db.all('SELECT nr,label,comment,producer FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature = $fid;', {$fid: feature.nr});
+      }
     }
   },
   ProductType: {
