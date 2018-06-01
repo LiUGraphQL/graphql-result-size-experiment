@@ -5,10 +5,15 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/logger.js"
   },
   "author": "Tim Andersson",
   "license": "ISC",
+  "devDependencies": {
+    "graphql-request": "^1.6.0",
+    "minimist": "^1.2.0",
+    "lodash": "^4.17.4"
+  },
   "dependencies": {
     "apollo-server-core": "github:timandersson/apollo-server-core",
     "apollo-server-express": "^1.3.6",
