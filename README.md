@@ -1,6 +1,6 @@
 # Example GraphQL Server
 Server using apollo-server-express, example schema to query over database.db.
-The server uses a query calculation package available at github:timandersson/graphql-query-calculator.
+The server uses an additional package to calculate the size of query response objects, which is available at [github:LiUGraphQL/graphql-result-size](https://github.com/LiUGraphQL/graphql-result-size).
 
 ## Deployment
 ```
