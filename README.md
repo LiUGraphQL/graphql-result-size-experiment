@@ -5,7 +5,7 @@ The server uses an additional package to calculate the size of query response ob
 ## Deployment
 ```
 git clone
-cd graphql-server
+cd experiment-tim
 npm install
 ```
 The server is started with `node server.js`
