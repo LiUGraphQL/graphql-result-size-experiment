@@ -8,7 +8,7 @@
     "test": "node test/logger.js"
   },
   "author": "Tim Andersson",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "graphql-request": "^1.6.0",
     "minimist": "^1.2.0",
