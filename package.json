@@ -12,7 +12,7 @@
   "devDependencies": {
     "graphql-request": "^1.6.0",
     "minimist": "^1.2.0",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.13"
   },
   "dependencies": {
     "apollo-server-core": "github:LiUGraphQL/apollo-server-core",
