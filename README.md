@@ -1,5 +1,7 @@
 # Example GraphQL Server
-This repo contains everything related to the concrete SQLite-based GraphQL implementation with result size calculation that Tim has used for his experiments, as documented in his Bachelor thesis titled [Result size calculation for Facebook's GraphQL query language](http://urn.kb.se/resolve?urn=urn:nbn:se:liu:diva-150026).
+This repo contains everything related to the concrete SQLite-based GraphQL implementation with result size calculation that Andreas has used for his experiments, as documented in his Master's thesis titled "Combining Result Size Estimation and Query Execution for the GraphQL Query Language."
+
+*Note: If you are here to find the implementation that Tim Andersson has used for his Bachelor thesis ([Result size calculation for Facebook's GraphQL query language](http://urn.kb.se/resolve?urn=urn:nbn:se:liu:diva-150026)), switch to the [TimAndersson branch](https://github.com/LiUGraphQL/graphql-result-size-experiment/tree/TimAndersson).*
 
 The GraphQL server is implemented using apollo-server-express and it provides access via SQLite to the [relational database representation](http://wifo5-03.informatik.uni-mannheim.de/bizer/berlinsparqlbenchmark/spec/Dataset/index.html#relationalrepresentation) of a [BSBM](http://wifo5-03.informatik.uni-mannheim.de/bizer/berlinsparqlbenchmark/) dataset. This database is available in the file `database.db`.
 The server uses an additional package to calculate the size of query response objects, which is available at github: [LiUGraphQL/graphql-result-size](https://github.com/LiUGraphQL/graphql-result-size).
