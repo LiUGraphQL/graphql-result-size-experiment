@@ -8,7 +8,7 @@ Moreover, the server uses i) an [extended version of graphql-extensions](https:/
 ## Deployment
 ```
 git clone
-cd experiment-tim
+cd graphql-result-size-experiment
 npm install
 ```
 The server is started with `node server.js`
