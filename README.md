@@ -3,7 +3,7 @@ This repo contains everything related to the concrete SQLite-based GraphQL imple
 
 The GraphQL server is implemented using apollo-server-express and it provides access via SQLite to the [relational database representation](http://wifo5-03.informatik.uni-mannheim.de/bizer/berlinsparqlbenchmark/spec/Dataset/index.html#relationalrepresentation) of a [BSBM](http://wifo5-03.informatik.uni-mannheim.de/bizer/berlinsparqlbenchmark/) dataset. This database is available in the file `database.db`.
 The server uses an additional package to calculate the size of query response objects, which is available at github [LiUGraphQL/graphql-result-size (use the branch called TimAndersson)](https://github.com/LiUGraphQL/graphql-result-size/tree/TimAndersson).
-Moreover, the server uses i) an [extended version of graphql-extensions](https://github.com/LiUGraphQL/graphql-extensions), ii) an [extended version of apollo-tracing-js](https://github.com/LiUGraphQL/apollo-tracing-js), and iii) an [extended version of apollo-server-core](https://github.com/LiUGraphQL/apollo-server-core).
+Moreover, the server uses i) an [extended version of graphql-extensions](https://github.com/LiUGraphQL/graphql-extensions), ii) an [extended version of apollo-tracing-js](https://github.com/LiUGraphQL/apollo-tracing-js), and iii) an [extended version of apollo-server-core (use the branch called TimAndersson)](https://github.com/LiUGraphQL/apollo-server-core/tree/TimAndersson).
 
 ## Deployment
 ```
