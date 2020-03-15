@@ -11,7 +11,7 @@
   "license": "MIT",
   "devDependencies": {
     "graphql-request": "^1.6.0",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "lodash": "^4.17.4"
   },
   "dependencies": {
