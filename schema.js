@@ -95,346 +95,204 @@ type Person {
 const resolvers = {
   Query: {
     Review(_, {nr}, context){
-      return context.db.get('SELECT nr FROM Review WHERE nr = $id', {$id: nr}).then((res) => {
-        return res.nr;
-      })
+      return context.reviewLoader.load(nr);
     },
     Person(_, {nr}, context){
-      return context.db.get('SELECT nr FROM Person WHERE nr = $pid', {$pid: nr}).then((res) => {
-        return res.nr;
-      })
+      return context.personLoader.load(nr);
     },
     Product(_, {nr}, context){
-      return context.db.get('SELECT nr FROM Product WHERE nr = $pr_id', {$pr_id: nr}).then((res) => {
-        return res.nr;
-      })
+      return context.productLoader.load(nr);
     },
     Offer(_, {nr}, context){
-      return context.db.get('SELECT nr FROM Offer WHERE nr = $id', {$id: nr}).then((res) => {
-        return res.nr;
-      })
+      return context.offerLoader.load(nr);
     }
   },
   Vendor: {
     nr(vendor, args, context){
-      return context.db.get('SELECT nr FROM Vendor WHERE nr = $id', {$id: vendor}).then((res) => {
-        return res.nr;
-      });
+      return vendor.nr;
     },
     label(vendor, args, context){
-      return context.db.get('SELECT label FROM Vendor WHERE nr = $id', {$id: vendor}).then((res) => {
-        return res.label;
-      });
+      return vendor.label;
     },
     comment(vendor, args, context){
-      return context.db.get('SELECT comment FROM Vendor WHERE nr = $id', {$id: vendor}).then((res) => {
-        return res.comment;
-      });
+      return vendor.comment;
     },
     homepage(vendor, args, context){
-      return context.db.get('SELECT homepage FROM Vendor WHERE nr = $id', {$id: vendor}).then((res) => {
-        return res.homepage;
-      });
+      return vendor.homepage;
     },
     country(vendor, args, context){
-      return context.db.get('SELECT country FROM Vendor WHERE nr = $id', {$id: vendor}).then((res) => {
-        return res.country;
-      });
+      return vendor.country;
     },
     publisher(vendor, args, context){
-      return context.db.get('SELECT publisher FROM Vendor WHERE nr = $id', {$id: vendor}).then((res) => {
-        return res.publisher;
-      });
+      return vendor.publisher;
     },
     publishDate(vendor, args, context){
-      return context.db.get('SELECT publishDate FROM Vendor WHERE nr = $id', {$id: vendor}).then((res) => {
-        return res.publishDate;
-      });
+      return vendor.publishDate;
     },
     offers(vendor, args, context){
-      return context.db.all('SELECT nr FROM Offer WHERE vendor = $id', {$id: vendor}).then((res) => {
-        return res.map(item => {
-          return item.nr;
-        });
-      });
+      return context.vendorOffersLoader.load(vendor.nr);
     }
   },
   Offer: {
     nr(offer, args, context){
-      return context.db.get('SELECT nr FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.nr;
-      });
+      return offer.nr;
     },
     price(offer, args, context){
-      return context.db.get('SELECT price FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.price;
-      });
+      return offer.price;
     },
     validFrom(offer, args, context){
-      return context.db.get('SELECT validFrom FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.validFrom;
-      });
+      return offer.validFrom;
     },
     validTo(offer, args, context){
-      return context.db.get('SELECT validTo FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.validTo;
-      });
+      return offer.validTo;
     },
     deliveryDays(offer, args, context){
-      return context.db.get('SELECT deliveryDays FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.deliveryDays;
-      });
+      return offer.deliveryDays;
     },
     offerWebpage(offer, args, context){
-      return context.db.get('SELECT offerWebpage FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.offerWebpage;
-      });
+      return offer.offerWebpage;
     },
     vendor(offer, args, context){
-      return context.db.get('SELECT vendor FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.vendor;
-      });
+      return context.offerVendorLoader.load(offer.vendor);
     },
     product(offer, args, context){
-      return context.db.get('SELECT product FROM Offer WHERE nr = $id', {$id: offer}).then((res) => {
-        return res.product;
-      });
+      return context.productLoader.load(offer.product);
     }
   },
   Review: {
     nr(review, args, context) {
-      return context.db.get('SELECT nr FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.nr;
-      });
+      return review.nr;
     },
     title(review, args, context) {
-      return context.db.get('SELECT title FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.title;
-      });
+      return review.title;
     },
     text(review, args, context) {
-      return context.db.get('SELECT text FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.text;
-      });
+      return review.text;
     },
     reviewDate(review, args, context) {
-      return context.db.get('SELECT reviewDate FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.reviewDate;
-      });
+      return review.reviewDate;
     },
     rating1(review, args, context) {
-      return context.db.get('SELECT rating1 FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.rating1;
-      });
+      return review.rating1;
     },
     rating2(review, args, context) {
-      return context.db.get('SELECT rating2 FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.rating2;
-      });
+      return review.rating2;
     },
     rating3(review, args, context) {
-      return context.db.get('SELECT rating3 FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.rating3;
-      });
+      return review.rating3;
     },
     rating4(review, args, context) {
-      return context.db.get('SELECT rating4 FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.rating4;
-      });
+      return review.rating4;
     },
     reviewer(review, args, context) {
-      return context.db.get('SELECT person FROM Review WHERE nr = $pid', {$pid: review}).then((res) => {
-        return res.person;
-      });
+      return context.personLoader.load(review.person);
     },
     reviewFor(review, args, context) {
-      return context.db.get('SELECT product FROM Review WHERE nr = $pr_id', {$pr_id: review}).then((res) => {
-        return res.product;
-      });
+      return context.productLoader.load(review.product);
     }
   },
   Person: {
     nr(person, args, context) {
-      return context.db.get('SELECT nr FROM Person WHERE nr = $pid', {$pid: person}).then((res) => {
-        return res.nr;
-      });
+      return person.nr;
     },
     name(person, args, context) {
-      return context.db.get('SELECT name FROM Person WHERE nr = $pid', {$pid: person}).then((res) => {
-        return res.name;
-      });
+      return person.name;
     },
     mbox_sha1sum(person, args, context) {
-      return context.db.get('SELECT mbox_sha1sum FROM Person WHERE nr = $pid', {$pid: person}).then((res) => {
-        return res.mbox_sha1sum;
-      });
+      return person.mbox_sha1sum;
     },
     country(person, args, context) {
-      return context.db.get('SELECT country FROM Person WHERE nr = $pid', {$pid: person}).then((res) => {
-        return res.country;
-      });
+      return person.country;
     },
     reviews(person, args, context) {
-      return context.db.all('SELECT nr FROM Review WHERE person = $pid', {$pid: person}).then((res) => {
-        return res.map(item => {
-          return item.nr;
-        });
-      });
+      return context.personReviewsLoader.load(person.nr);
     },
     knows(person, args, context){
-      return context.db.all('SELECT nr FROM Person p LEFT JOIN knowsperson kp on p.nr = kp.friend WHERE kp.person = $pid', {$pid: person}).then((res) => {
-        return res.map(item => {
-          return item.nr;
-        });
-      });
+      return context.personKnowsLoader.load(person.nr);
     }
   },
   Product: {
     nr(product, args, context) {
-      return context.db.get('SELECT nr FROM Product WHERE nr = $pr_id', {$pr_id: product}).then((res) => {
-        return res.nr;
-      });
+      return product.nr;
     },
     label(product, args, context) {
-      return context.db.get('SELECT label FROM Product WHERE nr = $pr_id', {$pr_id: product}).then((res) => {
-        return res.label;
-      });
+      return product.label;
     },
     comment(product, args, context) {
-      return context.db.get('SELECT comment FROM Product WHERE nr = $pr_id', {$pr_id: product}).then((res) => {
-        return res.comment;
-      });
+      return product.comment;
     },
     producer(product, args, context){
-      return context.db.get('SELECT producer FROM Product WHERE nr = $pr_id', {$pr_id: product}).then((res) => {
-        return res.producer;
-      });
+      return context.productProducerLoader.load(product.producer);
     },
     type(product, args, context){
-      return context.db.get('SELECT nr FROM producttype p LEFT JOIN producttypeproduct ptp on p.nr = ptp.productType WHERE ptp.product = $pr_id', {$pr_id: product}).then((res) => {
-        return res.nr;
-      });
+      return context.productTypeLoader.load(product.nr);
     },
     productFeature(product, {limit}, context){
       if(limit){
-        return context.db.all('SELECT nr FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product = $pr_id LIMIT $limit;', {$pr_id: product, $limit: limit}).then((res) => {
-          return res.map(item => {
-            return item.nr;
-          });
-        });
+        return context.productProductFeatureLoader.load({'id': product.nr, 'limit': limit});
       }
       else{
-        return context.db.all('SELECT nr FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product = $pr_id;', {$pr_id: product}).then((res) => {
-          return res.map(item => {
-            return item.nr;
-          });
-        });
+        return context.productProductFeatureLoader.load(product.nr);
       }
     },
     reviews(product, args, context) {
-      return context.db.all('SELECT nr FROM Review WHERE product = $pr_id', {$pr_id: product}).then((res) => {
-        return res.map(item => {
-          return item.nr;
-        });
-      });
+      return context.productReviewsLoader.load(product.nr);
     },
     offers(product, args, context){
-      return context.db.all('SELECT nr FROM Offer WHERE product = $pr_id', {$pr_id: product}).then((res) => {
-        return res.map(item => {
-          return item.nr;
-        });
-      });
+      return context.productOffersLoader.load(product.nr);
     }
   },
   ProductFeature: {
     nr(feature, args, context) {
-      return context.db.get('SELECT nr FROM productfeature WHERE nr = $pr_id', {$pr_id: feature}).then((res) => {
-        return res.nr;
-      });
+      return feature.nr;
     },
     label(feature, args, context) {
-      return context.db.get('SELECT label FROM productfeature WHERE nr = $pr_id', {$pr_id: feature}).then((res) => {
-        return res.label;
-      });
+      return feature.label;
     },
     comment(feature, args, context) {
-      return context.db.get('SELECT comment FROM productfeature WHERE nr = $pr_id', {$pr_id: feature}).then((res) => {
-        return res.comment;
-      });
+      return feature.comment;
     },
     products(feature, {limit}, context){
       if (limit){
-        return context.db.all('SELECT nr FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature = $fid LIMIT $limit;', {$fid: feature, $limit: limit}).then((res) => {
-          return res.map(item => {
-            return item.nr;
-          });
-        });
+        return context.productFeatureProductsLoader.load({'id': feature.nr, 'limit': limit});
       }
       else{
-        return context.db.all('SELECT nr FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature = $fid;', {$fid: feature}).then((res) => {
-          return res.map(item => {
-            return item.nr;
-          });
-        });
+        return context.productFeatureProductsLoader.load(feature.nr);
       }
     }
   },
   ProductType: {
     nr(type, args, context) {
-      return context.db.get('SELECT nr FROM producttype WHERE nr = $pr_id', {$pr_id: type}).then((res) => {
-        return res.nr;
-      });
+      return type.nr;
     },
     label(type, args, context) {
-      return context.db.get('SELECT label FROM producttype WHERE nr = $pr_id', {$pr_id: type}).then((res) => {
-        return res.label;
-      });
+      return type.label;
     },
     comment(type, args, context) {
-      return context.db.get('SELECT comment FROM producttype WHERE nr = $pr_id', {$pr_id: type}).then((res) => {
-        return res.comment;
-      });
+      return type.comment;
     },
     products(type, args, context){
-      return context.db.all('SELECT nr FROM product p LEFT JOIN producttypeproduct ptp ON p.nr = ptp.product WHERE ptp.producttype = $tid;', {$tid: type}).then((res) => {
-        return res.map(item => {
-          return item.nr;
-        });
-      });
+      return context.productTypeProductsLoader.load(type.nr);
     }
   },
   Producer: {
     nr(producer, args, context) {
-      return context.db.get('SELECT nr FROM Producer WHERE nr = $pr_id', {$pr_id: producer}).then((res) => {
-        return res.nr;
-      });
+      return producer.nr;
     },
     label(producer, args, context) {
-      return context.db.get('SELECT label FROM Producer WHERE nr = $pr_id', {$pr_id: producer}).then((res) => {
-        return res.label;
-      });
+      return producer.label;
     },    
     comment(producer, args, context) {
-      return context.db.get('SELECT comment FROM Producer WHERE nr = $pr_id', {$pr_id: producer}).then((res) => {
-        return res.comment;
-      });
+      return producer.comment;
     },
     homepage(producer, args, context) {
-      return context.db.get('SELECT homepage FROM Producer WHERE nr = $pr_id', {$pr_id: producer}).then((res) => {
-        return res.homepage;
-      });
+      return producer.homepage;
     },
     country(producer, args, context) {
-      return context.db.get('SELECT country FROM Producer WHERE nr = $pr_id', {$pr_id: producer}).then((res) => {
-        return res.country;
-      });
+      return producer.country;
     },
     products(producer, args, context){
-      return context.db.all('SELECT nr FROM product WHERE producer = $pid;', {$pid: producer}).then((res) => {
-        return res.map(item => {
-          return item.nr;
-        });
-      });
+      return context.producerProductsLoader.load(producer.nr);
     }
   }
 };
