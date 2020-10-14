@@ -14,7 +14,7 @@ cd graphql-result-size-experiment
 npm install
 ```
 The server is started with `node server.js`
-Starting the server will host a GraphQL http endpoint on localhost:4000/graphql, and a GraphiQL interface on localhost:4000/graphiql.
+Starting the server will host a GraphQL http endpoint on http://localhost:4000/graphql, and a GraphiQL interface on http://localhost:4000/graphiql.
 
 ## Running the experiments
 After starting the server in one terminal, the experiment can be run from a client-side perspective by executing commands such as the following in another terminal.
