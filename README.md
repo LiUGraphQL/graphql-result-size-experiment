@@ -11,8 +11,10 @@ Moreover, the server uses i) an [extended version of graphql-extensions](https:/
 ```
 git clone
 cd graphql-result-size-experiment
-npm install
+npm ci
 ```
+Note that the test server needs to be deployed with `npm ci` rather than `npm install`. This is necessary to make sure that the deployment uses the package versions specified in `package-lock.json` (namely, our [extended version of graphql-extensions](https://github.com/LiUGraphQL/graphql-extensions), our [extended version of apollo-tracing-js](https://github.com/LiUGraphQL/apollo-tracing-js), and our [extended version of apollo-server-core](https://github.com/LiUGraphQL/apollo-server-core)).
+
 The server is started with `node server.js`
 Starting the server will host a GraphQL http endpoint on http://localhost:4000/graphql, and a GraphiQL interface on http://localhost:4000/graphiql.
 
