@@ -9,7 +9,8 @@ var Schema = require('./schema');
 var app = express();
 app.use('/graphql', bodyParser.json(), graphqlExpress({
   schema: Schema,
-  tracing: true
+  tracing: true,
+  debug: false
 }));
 app.get('/graphiql', graphiqlExpress({
   endpointURL: '/graphql'
