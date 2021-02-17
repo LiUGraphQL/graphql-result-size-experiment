@@ -15,7 +15,13 @@ const sendRequest = (iter, query) => {
     totalExec += extensions.tracing.execution.duration;
     if (--iter > 0)
       return sendRequest(iter, query);
+  }).catch( (e) => {
+    totalCalc += e.response.extensions.tracing.calculation.duration;
+    //totalExec += e.response.extensions.tracing.execution.duration;
+    if (--iter > 0)
+      return sendRequest(iter, query);
   });
+
 };
 
 const execute = (iter, q) => {
