@@ -19,7 +19,8 @@ function createLoaders() {
     productOffersLoader: new DataLoader(productOffersLoader),
     productFeatureProductsLoader: new DataLoader(productFeatureProductsLoader),
     productTypeProductsLoader: new DataLoader(productTypeProductsLoader),
-    producerProductsLoader: new DataLoader(producerProductsLoader)
+    producerProductsLoader: new DataLoader(producerProductsLoader),
+    db: db
   }
 }
 
@@ -185,22 +186,6 @@ function productTypeLoader(productIds) {
 
 function productProductFeatureLoader(product) {
   return new Promise((resolve, reject) => {
-    if (typeof product[0] === 'object'){
-      const limit = product[0].limit;
-      const productIds = product.map(item => item.id);
-      const productIdsForQuery = '(\"' + productIds.join("\",\"") + '\")';
-      return db.all('SELECT p.nr, p.label, p.comment, pfp.product FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product IN ' + productIdsForQuery + ' LIMIT ' + limit, (error, rows) => {
-        if (error) {
-          reject(error);
-        }
-        else {
-          return resolve(productIds.map(id => {
-            return rows.filter(row => row.product === id).map(row => row)
-          }));
-        }
-      });
-    }
-    else {
       const productIds = product;
       const productIdsForQuery = '(\"' + productIds.join("\",\"") + '\")';
       return db.all('SELECT p.nr, p.label, p.comment, pfp.product FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product IN ' + productIdsForQuery, (error, rows) => {
@@ -213,7 +198,6 @@ function productProductFeatureLoader(product) {
           }));
         }
       });
-    }
   });
 }
 
@@ -251,22 +235,6 @@ function productOffersLoader(productIds) {
 
 function productFeatureProductsLoader(productFeature) {
   return new Promise((resolve, reject) => {
-    if (typeof productFeature[0] === 'object'){
-      const limit = productFeature[0].limit;
-      const productFeatureIds = productFeature.map(item => item.id);
-      const productFeatureIdsForQuery = '(\"' + productFeatureIds.join("\",\"") + '\")';
-      return db.all('SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature IN ' + productFeatureIdsForQuery + ' LIMIT ' + limit, (error, rows) => {
-        if (error) {
-          reject(error);
-        }
-        else {
-          return resolve(productFeatureIds.map(id => {
-            return rows.filter(row => row.productFeature === id).map(row => row)
-          }));
-        }
-      });
-    }
-    else {
       const productFeatureIds = productFeature;
       const productFeatureIdsForQuery = '(\"' + productFeatureIds.join("\",\"") + '\")';
       return db.all('SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature IN ' + productFeatureIdsForQuery, (error, rows) => {
@@ -279,7 +247,6 @@ function productFeatureProductsLoader(productFeature) {
           }));
         }
       });
-    }
   });
 }
 

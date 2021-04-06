@@ -228,8 +228,18 @@ const resolvers = {
       return context.productTypeLoader.load(product.nr);
     },
     productFeature(product, {limit}, context){
-      if(limit){
-        return context.productProductFeatureLoader.load({'id': product.nr, 'limit': limit});
+      if(limit){ // we cannot use the data loader for queries with LIMIT
+        return new Promise((resolve, reject) => {
+          const query = 'SELECT p.nr, p.label, p.comment, pfp.product FROM productfeatureproduct pfp INNER JOIN productfeature p ON pfp.productfeature = p.nr WHERE pfp.product = ' + product.nr + ' LIMIT ' + limit;
+          context.db.all(query, (error, rows) => {
+            if (error) {
+              reject(error);
+            }
+            else {
+              return resolve( rows.map(row => row) );
+            }
+          });
+        });
       }
       else{
         return context.productProductFeatureLoader.load(product.nr);
@@ -253,8 +263,18 @@ const resolvers = {
       return feature.comment;
     },
     products(feature, {limit}, context){
-      if (limit){
-        return context.productFeatureProductsLoader.load({'id': feature.nr, 'limit': limit});
+      if (limit){ // we cannot use the data loader for queries with LIMIT
+        return new Promise((resolve, reject) => {
+          const query = 'SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM productfeatureproduct pfp INNER JOIN product p ON pfp.product = p.nr WHERE pfp.productfeature = ' + feature.nr + ' LIMIT ' + limit;
+          context.db.all(query, (error, rows) => {
+            if (error) {
+              reject(error);
+            }
+            else {
+              return resolve( rows.map(row => row) );
+            }
+          });
+        });
       }
       else{
         return context.productFeatureProductsLoader.load(feature.nr);
