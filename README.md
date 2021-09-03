@@ -1,5 +1,5 @@
 # Example GraphQL Server
-This repo contains everything related to the concrete SQLite-based GraphQL implementation with result size calculation that Andreas has used for his experiments, as documented in his Master's thesis titled "Combining Result Size Estimation and Query Execution for the GraphQL Query Language."
+This repo contains everything related to the concrete SQLite-based GraphQL implementation with result size calculation that Andreas has used for his experiments, as documented in his Master's thesis titled [Combining Result Size Estimation and Query Execution for the GraphQL Query Language](http://urn.kb.se/resolve?urn=urn%3Anbn%3Ase%3Aliu%3Adiva-167086).
 
 *Note: If you are here to find the implementation that Tim Andersson has used for his Bachelor thesis ([Result size calculation for Facebook's GraphQL query language](http://urn.kb.se/resolve?urn=urn:nbn:se:liu:diva-150026)), switch to the [TimAndersson branch](https://github.com/LiUGraphQL/graphql-result-size-experiment/tree/TimAndersson).*
 
