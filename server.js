@@ -12,8 +12,16 @@ app.use('/graphql', bodyParser.json(), graphqlExpress({
   tracing: true,
   debug: false
 }));
-app.get('/graphiql', graphiqlExpress({
-  endpointURL: '/graphql'
-}));
-app.listen(4000);
-console.log('Running a GraphQL API server at localhost:4000/graphql');
+
+function makeServer(){
+  app.get('/graphiql', graphiqlExpress({
+    endpointURL: '/graphql'
+  }));
+  let httpServer = app.listen(4000);
+  console.log('Running a GraphQL API server at localhost:4000/graphql');
+  return httpServer;
+}
+
+module.exports = {
+  makeServer
+}
