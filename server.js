@@ -1,3 +1,8 @@
+const { ApolloServer } = require('apollo-server');
+const { db, createLoaders } = require('./loaders.js');
+const { typeDefs, resolvers } = require('./schema.js')
+
+/*
 var express = require('express');
 var bodyParser = require('body-parser');
 var {
@@ -12,14 +17,21 @@ app.use('/graphql', bodyParser.json(), graphqlExpress({
   tracing: true,
   debug: false
 }));
-
+*/
 function makeServer(){
-  app.get('/graphiql', graphiqlExpress({
-    endpointURL: '/graphql'
-  }));
-  let httpServer = app.listen(4000);
-  console.log('Running a GraphQL API server at localhost:4000/graphql');
-  return httpServer;
+  // Create instance of server
+  const server = new ApolloServer({
+    'typeDefs': typeDefs,
+    'resolvers': resolvers,
+    dataSources: () => {
+      return {
+        loaders: createLoaders(),
+        db: db
+      }
+    }
+  });
+
+  return server;
 }
 
 module.exports = {
