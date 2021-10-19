@@ -1,11 +1,10 @@
 const { makeServer } = require('../server');
 const { request, rawRequest } = require('graphql-request');
-let server;
-let url = 'http://localhost:4000/graphql';
+
 
 function makeQueryInner(depth){
     if(depth === 0){
-        return '{ label }';
+        return '{ nr }';
     }
     return `{ reviews { reviewFor ${makeQueryInner(depth-1)} } }`;
 }
@@ -15,23 +14,31 @@ function makeQuery(depth){
 }
 
 describe('Tests', () => {
+    let testServer;
+    let url = 'http://localhost:4000/graphql';
     before((done) => {
-        server = makeServer();
-        setTimeout(() => done(), 500)
+        makeServer().listen(4000).then(server => {
+            testServer = server;
+            done();
+        });
     })
 
-    it('test1', () => {
-        let q = makeQuery(2);
+    after((done) => {
+        testServer.server.close(done);
+    })
+
+    it('test1', (done) => {
+        let q = makeQuery(1);
         let t0 = new Date();
-        rawRequest(url, q).then(({data, extensions}) => {
-            console.log(JSON.stringify(data, 2));
-            console.log(JSON.stringify(extensions, 2));
+        rawRequest(url, q).then(({data, extensions, err}) => {
+            console.log("errors=", err);
+            console.log("extensions=", extensions);
+            console.log("data=", data);
+            done();
         }).catch(err => {
-            console.log(err)
+            done(err)
         });
         let t1 = new Date();
         console.log(`${t1-t0} ms`)
     });
-    
-    //after(() => server.close())
 })
