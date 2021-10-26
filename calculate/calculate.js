@@ -33,19 +33,16 @@ const {
     buildResolveInfo
 } = require('graphql/execution/execute.js');
 const { getArgumentValues } = require('graphql/execution/values.js');
-
+const { ApolloError } = require('apollo-server-errors')
 /**
  * queryCalculator - calling function for the recursive calculation algorithm.
  *
- * Initializes the labels, sizeMap, and resultsMap maps, runs the calculate function
+ * Initializes the labels, sizeMap, and resultsMap maps, and runs the calculate function
  * with the top level query and root node. Compares the threshold to the calculated
- * value and adds an error to the validationContext object if above this threshold.
- *
- * @param  {object} db                context object for querying the back-end
- * @param  {number} threshold         to compare the resulting size with
- * @param  {object} validationContext contains query and GraphQL schema
- * @param  {object} options           
- * @return {object}                   returns the query result in JSON format
+ * value and throws an error if the size is above the given threshold.
+ * 
+ * @param  {object} requestContext contains query and GraphQL schema
+ * @return {object}                returns the query result in JSON format
  */
  function queryCalculator(requestContext) {
     const { request, document } = requestContext;
@@ -54,16 +51,15 @@ const { getArgumentValues } = require('graphql/execution/values.js');
     const contextValue = requestContext.context;
     const schema = contextValue.schema;
     const rootValue = contextValue.rootValue;
-    const fieldResolver = contextValue.undefined;
-    const typeResolver = contextValue.undefined;
-
-    let exeContext = buildExecutionContext(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver, typeResolver)
+    const fieldResolver = contextValue.fieldResolver;
+    const typeResolver = contextValue.undeftypeResolver;
+    const exeContext = buildExecutionContext(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver, typeResolver)
 
     const fieldNodes = document.definitions[0].selectionSet.selections;
     // Additional parameters needed for the calculation
     const calculationContext = {
-        exeContext: exeContext,
-        fieldNodes: fieldNodes,
+        exeContext,
+        fieldNodes,
         threshold: contextValue.threshold,
         terminateEarly: contextValue.terminateEarly
     };
@@ -74,47 +70,34 @@ const { getArgumentValues } = require('graphql/execution/values.js');
          resultsMap: new Map(),
          hits: 0
     };
-    let db = contextValue.dataSources.db;
-
+    
     /* Parse query to remove location properties */
     const query = deleteKey(document.definitions[0].selectionSet.selections, 'loc');
     const rootNodeType = schema.getQueryType();
-    const rootNode = getRootNode(db, rootNodeType);
+    const rootNode = getRootNode(rootNodeType);
     const parentForResolvers = contextValue.rootValue;
 
     return populateDataStructures(structures, rootNode, rootNodeType, query, parentForResolvers, calculationContext, undefined)
         .then(resultSize => {
             let curKey = getSizeMapKey(rootNode, query);
-            //console.log('Calculated result size: ' + resultSize);
-            //console.log('Number of structure hits: ' + structures.hits);
-            if (resultSize > calculationContext.threshold) {
-                if(calculationContext.terminateEarly){
-                    throw new GraphQLError(`Query result size exceeds the maximum size of ${calculationContext.threshold}`);
-                } else {
-                    throw new GraphQLError(`Query result size ${resultSize} exceeds the maximum size of ${calculationContext.threshold}`);
-                }
+            let calculate = {
+                resultSize,
+                cacheHits: structures.hits,
+                terminateEarly: calculationContext.terminateEarly,
+                resultSizeLimit: calculationContext.threshold
             }
-            //let data = {
-            //    results: structures.resultsMap,
-            //    context: calculationContext.context,
-            //    index: curKey
-            //};
+            // Throw error if size exceeds limit
+            if (resultSize > calculationContext.threshold) {
+                throw new ApolloError(`Query result exceeds the maximum size of ${calculationContext.threshold}`, 'RESULT_SIZE_LIMIT_EXCEEDED', calculate);
+            }
+            // Get the result and add
             let result = {
                 data: JSON.parse(`{ ${produceResult(structures.resultsMap, curKey)} }`),
                 extensions: {
-                    calculate: {
-                        resultSize,
-                        cacheHits: structures.hits,
-                        terminateEarly: calculationContext.terminateEarly,
-                        resultSizeLimit: calculationContext.threshold
-                    }
+                    calculate
                 } 
             };
-            
             return result;
-            
-            //execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver, typeResolver).then(x => console.log("exec", x))
-            //return execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver, typeResolver);
         });
 }
 
@@ -124,7 +107,6 @@ const { getArgumentValues } = require('graphql/execution/values.js');
  * look ups in the sizeMap and in the resultsMap.
  */
 function getSizeMapKey(u, query) {
-    //return JSON.stringify([u, query]);
     return JSON.stringify([u, print(query)]);
 }
 
@@ -412,11 +394,6 @@ function updateDataStructuresForObjectFieldResultItem(structures, subquery, rela
     // get into the recursion for the given result item
     return populateDataStructures(structures, relatedNode, relatedNodeType, subquery.selectionSet.selections, parentForResolvers, calculationContext, path)
         .then(subquerySize => {
-            //     // extend the corresponding resultsMap entry
-            //     structures.resultsMap.get(sizeMapKey).push("{");
-            //     structures.resultsMap.get(sizeMapKey).push([sizeMapKeyForRelatedNode]);
-            //     structures.resultsMap.get(sizeMapKey).push("}");
-            // ...and return an increased result size promise
             return Promise.resolve(subquerySize + 2); // +2 for '{' and '}'
         });
 }
@@ -446,10 +423,7 @@ function extendPath(prev, key) {
  * Builds the resolver info and args, then executes the corresponding resolver function.
  */
 function resolveField(subquery, nodeType, fieldDef, parentForResolvers, calculationContext, path) {
-    //let resolveFn = fieldDef.resolve || calculationContext.exeContext.fieldResolver;
     let resolveFn = fieldDef.resolve;
-    //let info = _execution.buildResolveInfo(calculationContext.exeContext, fieldDef, calculationContext.fieldNodes, nodeType, path);
-    //let args = (0, _execution.getArgumentValues(fieldDef, subquery, calculationContext.exeContext.variableValues));
     let info = buildResolveInfo(calculationContext.exeContext, fieldDef, calculationContext.fieldNodes, nodeType, path);
     let args = (0, getArgumentValues(fieldDef, subquery, calculationContext.exeContext.variableValues));
     return Promise.resolve(resolveFn(parentForResolvers, args, calculationContext.exeContext.contextValue, info));
@@ -463,7 +437,7 @@ function resolveField(subquery, nodeType, fieldDef, parentForResolvers, calculat
  */
 function produceResult(resultsMap, index) {
     if (resultsMap == null) {
-        return "{}";
+        return "";
     }
     let response = "";
     resultsMap.get(index).forEach(element => {

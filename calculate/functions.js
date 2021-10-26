@@ -14,17 +14,17 @@ Node.prototype.equals = function(obj) {
 };
 
 //Return a new instance of a Node object, unique representation of the root node
-var getRootNode = (db, queryType) => {
+let getRootNode = (queryType) => {
   return new Node(0, queryType.name);
 };
 
 //Return the type of the given node, output should be a GraphQLType object
-var nodeType = (node) => {
+let nodeType = (node) => {
   return node.table;
 };
 
 // Create a new node
-var createNode = (item, fieldDef) => {
+let createNode = (item, fieldDef) => {
   let id = item;
   let fieldTypes = fieldDef.astNode.type.kind === 'ListType' ? fieldDef.type.ofType._fields : fieldDef.type._fields;
   _.forOwn(fieldTypes, type => {
