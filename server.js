@@ -1,39 +1,35 @@
 const { ApolloServer } = require('apollo-server');
 const { db, createLoaders } = require('./loaders.js');
 const { typeDefs, resolvers } = require('./schema.js')
+const { queryCalculator } = require('./calculate/calculate.js');
 
-/*
-var express = require('express');
-var bodyParser = require('body-parser');
-var {
-  graphqlExpress,
-  graphiqlExpress
-} = require('apollo-server-express');
-var Schema = require('./schema');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
 
-var app = express();
-app.use('/graphql', bodyParser.json(), graphqlExpress({
-  schema: Schema,
-  tracing: true,
-  debug: false
-}));
-*/
-function makeServer(){
-  // Create instance of server
-  const server = new ApolloServer({
-    'typeDefs': typeDefs,
-    'resolvers': resolvers,
-    dataSources: () => {
-      return {
-        loaders: createLoaders(),
-        db: db
-      }
-    }
-  });
+function makeServer() {
+    const schema = makeExecutableSchema({
+        typeDefs,
+        resolvers
+    });
 
-  return server;
+    // Create instance of server
+    const server = new ApolloServer({
+        schema,
+        // data sources are added to the global 'context' since it will be used by the resolvers
+        // Pass theshold as part of the context object
+        dataSources: () => {
+            return { loaders: createLoaders() }
+        },
+        context: {
+            threshold: 5,
+            terminateEarly: true,
+            schema
+        },
+        executor: queryCalculator
+    });
+
+    return server;
 }
 
 module.exports = {
-  makeServer
+    makeServer
 }
