@@ -1,4 +1,5 @@
 const { gql } = require('apollo-server');
+const { GraphQLError } = require('graphql');
 
 const typeDefs = gql`
   directive @offer(id:String, relation:String) on FIELD_DEFINITION
@@ -98,111 +99,111 @@ const typeDefs = gql`
 `;
 
 const resolvers = {
-  Query: {
-    Review(_, {nr}, {dataSources}){
-      return dataSources.loaders.reviewLoader.load(nr);
+    Query: {
+        Review(_, { nr }, { dataSources }, context) {
+            return dataSources.loaders.reviewLoader.load(nr);
+        },
+        Person(_, { nr }, { dataSources }) {
+            return dataSources.loaders.personLoader.load(nr);
+        },
+        Product(parent, { nr }, { dataSources }) {
+            return dataSources.loaders.productLoader.load(nr);
+        },
+        Offer(_, { nr }, { dataSources }) {
+            return dataSources.loaders.offerLoader.load(nr);
+        }
     },
-    Person(_, {nr}, {dataSources}){
-      return dataSources.loaders.personLoader.load(nr);
+    Vendor: {
+        offers(vendor, args, { dataSources }) {
+            return dataSources.loaders.vendorOffersLoader.load(vendor.nr);
+        }
     },
-    Product(_, {nr}, {dataSources}){
-      return dataSources.loaders.productLoader.load(nr);
+    Offer: {
+        vendor(offer, args, { dataSources }) {
+            return dataSources.loaders.offerVendorLoader.load(offer.vendor);
+        },
+        product(offer, args, { dataSources }) {
+            return dataSources.loaders.productLoader.load(offer.product);
+        }
     },
-    Offer(_, {nr}, {dataSources}){
-      return dataSources.loaders.offerLoader.load(nr);
-    }
-  },
-  Vendor: {
-    offers(vendor, args, {dataSources}){
-      return dataSources.loaders.vendorOffersLoader.load(vendor.nr);
-    }
-  },
-  Offer: {
-    vendor(offer, args, {dataSources}){
-      return dataSources.loaders.offerVendorLoader.load(offer.vendor);
+    Review: {
+        reviewer(review, args, { dataSources }) {
+            return dataSources.loaders.personLoader.load(review.person);
+        },
+        reviewFor(review, args, { dataSources }) {
+            return dataSources.loaders.productLoader.load(review.product);
+        }
     },
-    product(offer, args, {dataSources}){
-      return dataSources.loaders.productLoader.load(offer.product);
-    }
-  },
-  Review: {
-    reviewer(review, args, {dataSources}) {
-      return dataSources.loaders.personLoader.load(review.person);
+    Person: {
+        reviews(person, args, { dataSources }) {
+            return dataSources.loaders.personReviewsLoader.load(person.nr);
+        },
+        knows(person, args, { dataSources }) {
+            return dataSources.loaders.personKnowsLoader.load(person.nr);
+        }
     },
-    reviewFor(review, args, {dataSources}) {
-      return dataSources.loaders.productLoader.load(review.product);
-    }
-  },
-  Person: {
-    reviews(person, args, {dataSources}) {
-      return dataSources.loaders.personReviewsLoader.load(person.nr);
-    },
-    knows(person, args, {dataSources}){
-      return dataSources.loaders.personKnowsLoader.load(person.nr);
-    }
-  },
-  Product: {
-    producer(product, args, {dataSources}){
-      return dataSources.loaders.productProducerLoader.load(product.producer);
-    },
-    type(product, args, {dataSources}){
-      return dataSources.loaders.productTypeLoader.load(product.nr);
-    },
-    productFeature(product, {limit}, {dataSources}){
-      if(limit){ // we cannot use the data loader for queries with LIMIT
-        return new Promise((resolve, reject) => {
-          const query = 'SELECT p.nr, p.label, p.comment, pfp.product FROM productfeatureproduct pfp INNER JOIN productfeature p ON pfp.productfeature = p.nr WHERE pfp.product = ' + product.nr + ' LIMIT ' + limit;
-          dataSources.db.all(query, (error, rows) => {
-            if (error) {
-              reject(error);
+    Product: {
+        producer(product, args, { dataSources }) {
+            return dataSources.loaders.productProducerLoader.load(product.producer);
+        },
+        type(product, args, { dataSources }) {
+            return dataSources.loaders.productTypeLoader.load(product.nr);
+        },
+        productFeature(product, { limit }, { dataSources }) {
+            if (limit) { // we cannot use the data loader for queries with LIMIT
+                return new Promise((resolve, reject) => {
+                    const query = 'SELECT p.nr, p.label, p.comment, pfp.product FROM productfeatureproduct pfp INNER JOIN productfeature p ON pfp.productfeature = p.nr WHERE pfp.product = ' + product.nr + ' LIMIT ' + limit;
+                    dataSources.db.all(query, (error, rows) => {
+                        if (error) {
+                            reject(error);
+                        }
+                        else {
+                            return resolve(rows.map(row => row));
+                        }
+                    });
+                });
             }
             else {
-              return resolve( rows.map(row => row) );
+                return dataSources.loaders.productProductFeatureLoader.load(product.nr);
             }
-          });
-        });
-      }
-      else{
-        return dataSources.loaders.productProductFeatureLoader.load(product.nr);
-      }
+        },
+        reviews(product, args, { dataSources }) {
+            return dataSources.loaders.productReviewsLoader.load(product.nr);
+        },
+        offers(product, args, { dataSources }) {
+            return dataSources.loaders.productOffersLoader.load(product.nr);
+        }
     },
-    reviews(product, args, {dataSources}) {
-      return dataSources.loaders.productReviewsLoader.load(product.nr);
-    },
-    offers(product, args, {dataSources}){
-      return dataSources.loaders.productOffersLoader.load(product.nr);
-    }
-  },
-  ProductFeature: {
-    products(feature, {limit}, {dataSources}){
-      if (limit){ // we cannot use the data loader for queries with LIMIT
-        return new Promise((resolve, reject) => {
-          const query = 'SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM productfeatureproduct pfp INNER JOIN product p ON pfp.product = p.nr WHERE pfp.productfeature = ' + feature.nr + ' LIMIT ' + limit;
-          dataSources.db.all(query, (error, rows) => {
-            if (error) {
-              reject(error);
+    ProductFeature: {
+        products(feature, { limit }, { dataSources }) {
+            if (limit) { // we cannot use the data loader for queries with LIMIT
+                return new Promise((resolve, reject) => {
+                    const query = 'SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM productfeatureproduct pfp INNER JOIN product p ON pfp.product = p.nr WHERE pfp.productfeature = ' + feature.nr + ' LIMIT ' + limit;
+                    dataSources.db.all(query, (error, rows) => {
+                        if (error) {
+                            reject(error);
+                        }
+                        else {
+                            return resolve(rows.map(row => row));
+                        }
+                    });
+                });
             }
             else {
-              return resolve( rows.map(row => row) );
+                return dataSources.loaders.productFeatureProductsLoader.load(feature.nr);
             }
-          });
-        });
-      }
-      else{
-        return dataSources.loaders.productFeatureProductsLoader.load(feature.nr);
-      }
+        }
+    },
+    ProductType: {
+        products(type, args, { dataSources }) {
+            return dataSources.loaders.productTypeProductsLoader.load(type.nr);
+        }
+    },
+    Producer: {
+        products(producer, args, { dataSources }) {
+            return dataSources.loaders.producerProductsLoader.load(producer.nr);
+        }
     }
-  },
-  ProductType: {
-    products(type, args, {dataSources}){
-      return dataSources.loaders.productTypeProductsLoader.load(type.nr);
-    }
-  },
-  Producer: {
-    products(producer, args, {dataSources}){
-      return dataSources.loaders.producerProductsLoader.load(producer.nr);
-    }
-  }
 };
 
 module.exports = { typeDefs, resolvers };
