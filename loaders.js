@@ -24,7 +24,7 @@ function createLoaders() {
   }
 }
 
-function reviewLoader(reviewIds) {  
+function reviewLoader(reviewIds) {
   return new Promise((resolve, reject) => {
     const reviewIdsForQuery = '(\"' + reviewIds.join("\",\"") + '\")';
     return db.all('SELECT nr, title, text, reviewDate, rating1, rating2, rating3, rating4, product, person FROM Review WHERE nr IN ' + reviewIdsForQuery, (error, rows) => {
@@ -32,6 +32,9 @@ function reviewLoader(reviewIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(rows.map(
           review => review
         ));
@@ -48,6 +51,9 @@ function personLoader(personIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(rows.map(
           person => person
         ));
@@ -64,6 +70,9 @@ function productLoader(productIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(rows.map(
           product => product
         ));
@@ -80,6 +89,9 @@ function offerLoader(offerIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(rows.map(
           offer => offer
         ));
@@ -91,11 +103,14 @@ function offerLoader(offerIds) {
 function vendorOffersLoader(vendorIds) {
   return new Promise((resolve, reject) => {
     const vendorIdsForQuery = '(\"' + vendorIds.join("\",\"") + '\")';
-    return db.all('SELECT nr, price, validFrom, validTo, deliveryDays, offerWebpage, vendor, product FROM Offer WHERE vendor IN ' +vendorIdsForQuery, (error, rows) => {
+    return db.all('SELECT nr, price, validFrom, validTo, deliveryDays, offerWebpage, vendor, product FROM Offer WHERE vendor IN ' + vendorIdsForQuery, (error, rows) => {
       if (error) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(vendorIds.map(id => {
           return rows.filter(row => row.vendor === id).map(row => row)
         }));
@@ -112,6 +127,9 @@ function offerVendorLoader(vendorIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(rows.map(
           vendor => vendor
         ));
@@ -128,6 +146,9 @@ function personReviewsLoader(personIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(personIds.map(id => {
           return rows.filter(row => row.person === id).map(row => row)
         }));
@@ -144,6 +165,9 @@ function personKnowsLoader(personIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(personIds.map(id => {
           return rows.filter(row => row.person === id).map(row => row)
         }));
@@ -160,6 +184,9 @@ function productProducerLoader(producerIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(rows.map(
           producer => producer
         ));
@@ -176,6 +203,9 @@ function productTypeLoader(productIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(productIds.map(id => {
           return rows.filter(row => row.product === id).map(row => row)
         }));
@@ -186,18 +216,21 @@ function productTypeLoader(productIds) {
 
 function productProductFeatureLoader(product) {
   return new Promise((resolve, reject) => {
-      const productIds = product;
-      const productIdsForQuery = '(\"' + productIds.join("\",\"") + '\")';
-      return db.all('SELECT p.nr, p.label, p.comment, pfp.product FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product IN ' + productIdsForQuery, (error, rows) => {
-        if (error) {
-          reject(error);
+    const productIds = product;
+    const productIdsForQuery = '(\"' + productIds.join("\",\"") + '\")';
+    return db.all('SELECT p.nr, p.label, p.comment, pfp.product FROM productfeature p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.productfeature WHERE pfp.product IN ' + productIdsForQuery, (error, rows) => {
+      if (error) {
+        reject(error);
+      }
+      else {
+        if (rows.length == 0) {
+          return resolve([{}])
         }
-        else {
-          return resolve(productIds.map(id => {
-            return rows.filter(row => row.product === id).map(row => row)
-          }));
-        }
-      });
+        return resolve(productIds.map(id => {
+          return rows.filter(row => row.product === id).map(row => row)
+        }));
+      }
+    });
   });
 }
 
@@ -209,6 +242,9 @@ function productReviewsLoader(productIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(productIds.map(id => {
           return rows.filter(row => row.product === id).map(row => row)
         }));
@@ -225,6 +261,9 @@ function productOffersLoader(productIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(productIds.map(id => {
           return rows.filter(row => row.product === id).map(row => row)
         }));
@@ -235,18 +274,21 @@ function productOffersLoader(productIds) {
 
 function productFeatureProductsLoader(productFeature) {
   return new Promise((resolve, reject) => {
-      const productFeatureIds = productFeature;
-      const productFeatureIdsForQuery = '(\"' + productFeatureIds.join("\",\"") + '\")';
-      return db.all('SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature IN ' + productFeatureIdsForQuery, (error, rows) => {
-        if (error) {
-          reject(error);
+    const productFeatureIds = productFeature;
+    const productFeatureIdsForQuery = '(\"' + productFeatureIds.join("\",\"") + '\")';
+    return db.all('SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM product p LEFT JOIN productfeatureproduct pfp ON p.nr = pfp.product WHERE pfp.productfeature IN ' + productFeatureIdsForQuery, (error, rows) => {
+      if (error) {
+        reject(error);
+      }
+      else {
+        if (rows.length == 0) {
+          return resolve([{}])
         }
-        else {
-          return resolve(productFeatureIds.map(id => {
-            return rows.filter(row => row.productFeature === id).map(row => row);
-          }));
-        }
-      });
+        return resolve(productFeatureIds.map(id => {
+          return rows.filter(row => row.productFeature === id).map(row => row);
+        }));
+      }
+    });
   });
 }
 
@@ -258,6 +300,9 @@ function productTypeProductsLoader(productTypeIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(productTypeIds.map(id => {
           return rows.filter(row => row.producttype === id).map(row => row.nr)
         }));
@@ -274,6 +319,9 @@ function producerProductsLoader(producerIds) {
         reject(error);
       }
       else {
+        if (rows.length == 0) {
+          return resolve([{}])
+        }
         return resolve(producerIds.map(id => {
           return rows.filter(row => row.producer === id).map(row => row.nr)
         }));
