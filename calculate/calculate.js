@@ -424,6 +424,8 @@ function produceResult(resultsMap, index) {
             });
         } else if (typeof element === "object" && element !== null) {
             response += produceResult(resultsMap, element[0]);
+        } else if (element === undefined || element == null) {
+            response += null;
         } else {
             response += element;
         }
