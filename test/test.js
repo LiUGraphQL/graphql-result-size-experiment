@@ -1,23 +1,37 @@
-const { makeServer } = require('../server');
+const { createLoaders } = require('../loaders.js');
+const { typeDefs, resolvers } = require('../schema.js')
+const { queryCalculator } = require('../calculate/calculate.js');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { makeServer } = require('../server.js');
 const { request, rawRequest } = require('graphql-request');
+const { calculateResultSize } = require('./utils.js')
 
+const chai = require('chai')
 
-function makeQueryInner(depth){
-    if(depth === 0){
-        return '{ nr }';
-    }
-    return `{ reviews { reviewFor ${makeQueryInner(depth-1)} } }`;
-}
-
-function makeQuery(depth){
-    return `{ Product(nr:6) ${makeQueryInner(depth)} }`;
-}
-
-describe('Tests', () => {
+describe('Test counting', () => {
     let testServer;
     let url = 'http://localhost:4000/graphql';
+
     before((done) => {
-        makeServer().listen(4000).then(server => {
+        const schema = makeExecutableSchema({
+            typeDefs,
+            resolvers
+        });
+        
+        const config = {
+            schema,
+            dataSources: () => {
+                return { loaders: createLoaders() }
+            },
+            context: {
+                threshold: 10000,
+                terminateEarly: false,
+                schema
+            },
+            executor: queryCalculator
+        };
+
+        makeServer(config).listen(4000).then(server => {
             testServer = server;
             done();
         });
@@ -27,18 +41,27 @@ describe('Tests', () => {
         testServer.server.close(done);
     })
 
-    it('test1', (done) => {
-        let q = makeQuery(1);
-        let t0 = new Date();
-        rawRequest(url, q).then(({data, extensions, err}) => {
-            console.log("errors=", err);
-            console.log("extensions=", extensions);
-            console.log("data=", data);
-            done();
-        }).catch(err => {
-            done(err)
+    describe('scalar', () => {
+        it('single value', (done) => {
+            const query = '{ Product(nr:6){ nr } }';
+            rawRequest(url, query).then(({data, extensions}) => {
+                const { resultSize } = extensions.calculate;
+                chai.assert.equal(resultSize, calculateResultSize(data));
+                done();
+            }).catch(e => {
+                done(e);
+            });
         });
-        let t1 = new Date();
-        console.log(`${t1-t0} ms`)
+
+        it('single null value', (done) => {
+            const query = '{ Product(nr:0){ nr } }';
+            rawRequest(url, query).then(({data, extensions}) => {
+                const { resultSize } = extensions.calculate;
+                chai.assert.equal(resultSize, calculateResultSize(data));
+                done();
+            }).catch(e => {
+                done(e);
+            });
+        });
     });
-})
+});
