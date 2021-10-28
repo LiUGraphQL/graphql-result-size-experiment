@@ -1,5 +1,6 @@
 const { gql } = require('apollo-server');
 const { GraphQLError } = require('graphql');
+const _ = require('lodash');
 
 const typeDefs = gql`
   directive @offer(id:String, relation:String) on FIELD_DEFINITION
@@ -136,20 +137,25 @@ const resolvers = {
     },
     Person: {
         reviews(person, args, { dataSources }) {
+            if(_.isEmpty(person)) return null;
             return dataSources.loaders.personReviewsLoader.load(person.nr);
         },
         knows(person, args, { dataSources }) {
+            if(_.isEmpty(person)) return null;
             return dataSources.loaders.personKnowsLoader.load(person.nr);
         }
     },
     Product: {
         producer(product, args, { dataSources }) {
+            if(_.isEmpty(product)) return null;
             return dataSources.loaders.productProducerLoader.load(product.producer);
         },
         type(product, args, { dataSources }) {
+            if(_.isEmpty(product)) return null;
             return dataSources.loaders.productTypeLoader.load(product.nr);
         },
         productFeature(product, { limit }, { dataSources }) {
+            if(_.isEmpty(product)) return null;
             if (limit) { // we cannot use the data loader for queries with LIMIT
                 return new Promise((resolve, reject) => {
                     const query = 'SELECT p.nr, p.label, p.comment, pfp.product FROM productfeatureproduct pfp INNER JOIN productfeature p ON pfp.productfeature = p.nr WHERE pfp.product = ' + product.nr + ' LIMIT ' + limit;
@@ -168,14 +174,17 @@ const resolvers = {
             }
         },
         reviews(product, args, { dataSources }) {
+            if(_.isEmpty(product)) return null;
             return dataSources.loaders.productReviewsLoader.load(product.nr);
         },
         offers(product, args, { dataSources }) {
+            if(_.isEmpty(product)) return null;
             return dataSources.loaders.productOffersLoader.load(product.nr);
         }
     },
     ProductFeature: {
         products(feature, { limit }, { dataSources }) {
+            if(_.isEmpty(feature)) return null;
             if (limit) { // we cannot use the data loader for queries with LIMIT
                 return new Promise((resolve, reject) => {
                     const query = 'SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM productfeatureproduct pfp INNER JOIN product p ON pfp.product = p.nr WHERE pfp.productfeature = ' + feature.nr + ' LIMIT ' + limit;
@@ -196,11 +205,13 @@ const resolvers = {
     },
     ProductType: {
         products(type, args, { dataSources }) {
+            if(_.isEmpty(type)) return null;
             return dataSources.loaders.productTypeProductsLoader.load(type.nr);
         }
     },
     Producer: {
         products(producer, args, { dataSources }) {
+            if(_.isEmpty(producer)) return null;
             return dataSources.loaders.producerProductsLoader.load(producer.nr);
         }
     }

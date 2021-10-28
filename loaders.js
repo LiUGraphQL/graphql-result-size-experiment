@@ -33,7 +33,7 @@ function reviewLoader(reviewIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(rows.map(
           review => review
@@ -52,7 +52,7 @@ function personLoader(personIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(rows.map(
           person => person
@@ -71,7 +71,7 @@ function productLoader(productIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(rows.map(
           product => product
@@ -90,7 +90,7 @@ function offerLoader(offerIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(rows.map(
           offer => offer
@@ -109,7 +109,7 @@ function vendorOffersLoader(vendorIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(vendorIds.map(id => {
           return rows.filter(row => row.vendor === id).map(row => row)
@@ -128,7 +128,7 @@ function offerVendorLoader(vendorIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(rows.map(
           vendor => vendor
@@ -147,7 +147,7 @@ function personReviewsLoader(personIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(personIds.map(id => {
           return rows.filter(row => row.person === id).map(row => row)
@@ -166,7 +166,7 @@ function personKnowsLoader(personIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(personIds.map(id => {
           return rows.filter(row => row.person === id).map(row => row)
@@ -185,7 +185,7 @@ function productProducerLoader(producerIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(rows.map(
           producer => producer
@@ -204,7 +204,7 @@ function productTypeLoader(productIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(productIds.map(id => {
           return rows.filter(row => row.product === id).map(row => row)
@@ -224,7 +224,7 @@ function productProductFeatureLoader(product) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(productIds.map(id => {
           return rows.filter(row => row.product === id).map(row => row)
@@ -243,7 +243,7 @@ function productReviewsLoader(productIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(productIds.map(id => {
           return rows.filter(row => row.product === id).map(row => row)
@@ -262,7 +262,7 @@ function productOffersLoader(productIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(productIds.map(id => {
           return rows.filter(row => row.product === id).map(row => row)
@@ -282,7 +282,7 @@ function productFeatureProductsLoader(productFeature) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(productFeatureIds.map(id => {
           return rows.filter(row => row.productFeature === id).map(row => row);
@@ -301,7 +301,7 @@ function productTypeProductsLoader(productTypeIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(productTypeIds.map(id => {
           return rows.filter(row => row.producttype === id).map(row => row.nr)
@@ -320,7 +320,7 @@ function producerProductsLoader(producerIds) {
       }
       else {
         if (rows.length == 0) {
-          return resolve([{}])
+          return resolve([null])
         }
         return resolve(producerIds.map(id => {
           return rows.filter(row => row.producer === id).map(row => row.nr)
