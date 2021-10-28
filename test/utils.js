@@ -15,9 +15,11 @@ function calculateResultSize(result){
     // strings
     result = result.replace(/".+?"/g, 'S');
     // numbers
-    result = result.replace(/[0-9]+/g, 'N');
+    result = result.replace(/[0-9]*\.?[0-9]+/g, 'N');
     // spaces
     result = result.replace(/\s+/g, '');
+    // null
+    result = result.replace(/null/g, '0');
     return result.length;
 }
 
