@@ -30,7 +30,8 @@ const {
 } = require('./functions');
 const { 
     buildExecutionContext,
-    buildResolveInfo
+    buildResolveInfo,
+    getFieldDef
 } = require('graphql/execution/execute.js');
 const { getArgumentValues } = require('graphql/execution/values.js');
 const { ApolloError } = require('apollo-server-errors');
@@ -55,7 +56,6 @@ const { size } = require('lodash');
     const fieldResolver = contextValue.fieldResolver;
     const typeResolver = contextValue.undeftypeResolver;
     const exeContext = buildExecutionContext(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver, typeResolver)
-
     const fieldNodes = document.definitions[0].selectionSet.selections;
     // Additional parameters needed for the calculation
     const calculationContext = {
@@ -235,6 +235,9 @@ async function updateDataStructuresForAllSubqueries(structures, query, sizeMapKe
 function updateDataStructuresForScalarField(structures, sizeMapKey, uType, subquery, parentForResolvers, calculationContext, path) {
     let fieldName = subquery.name.value;
     let fieldDef = uType.getFields()[fieldName];
+    if(fieldDef == undefined){
+        fieldDef = getFieldDef(calculationContext.schema, uType, fieldName);
+    }
     path = extendPath(path, fieldName);
     return resolveField(subquery, uType, fieldDef, parentForResolvers, calculationContext, path)
         .then(result => {
