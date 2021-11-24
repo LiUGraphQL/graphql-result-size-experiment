@@ -219,11 +219,18 @@ async function updateDataStructuresForAllSubqueries(structures, query, sizeMapKe
     }))
         .then(subquerySizes => {
             let size = subquerySizes.length - 1; // for the commas
-            subquerySizes.forEach(subquerySize => size += subquerySize);
-
-            if(size > calculationContext.threshold && calculationContext.terminateEarly){
-                throw new ApolloError(`Early termination: Query result of ${size} exceeds the maximum size of ${calculationContext.threshold}`, 'RESULT_SIZE_LIMIT_EXCEEDED');
-            }
+            subquerySizes.forEach(subquerySize => {
+                size += subquerySize;
+                if(size > calculationContext.threshold && calculationContext.terminateEarly){
+                    let calculate = {
+                        resultSize: size,
+                        cacheHits: structures.hits,
+                        terminateEarly: calculationContext.terminateEarly,
+                        resultSizeLimit: calculationContext.threshold
+                    }
+                    throw new ApolloError(`Query result of ${size} exceeds the maximum size of ${calculationContext.threshold}`, 'EARLY_TERMINATION_RESULT_SIZE_LIMIT_EXCEEDED', calculate);
+                }
+            });
             return Promise.resolve(size);
         });
 }
@@ -267,7 +274,13 @@ function updateDataStructuresForScalarFieldValue(structures, sizeMapKey, result,
     }
 
     if(size > calculationContext.threshold && calculationContext.terminateEarly){
-        throw new ApolloError(`Early termination: Query result of ${size} exceeds the maximum size of ${calculationContext.threshold}`, 'RESULT_SIZE_LIMIT_EXCEEDED');
+        let calculate = {
+            resultSize: size,
+            cacheHits: structures.hits,
+            terminateEarly: calculationContext.terminateEarly,
+            resultSizeLimit: calculationContext.threshold
+        }
+        throw new ApolloError(`Query result of ${size} exceeds the maximum size of ${calculationContext.threshold}`, 'EARLY_TERMINATION_RESULT_SIZE_LIMIT_EXCEEDED', calculate);
     }
 
     const sizePromise = Promise.resolve(size);
@@ -310,10 +323,18 @@ function updateDataStructuresForObjectField(structures, sizeMapKey, uType, subqu
             // extend data structures to capture the given result fetched for the object field
             return updateDataStructuresForObjectFieldResult(result, structures, sizeMapKey, subquery, fieldDef, parentForResolvers, calculationContext, path)
                 .then(subquerySize => {
-                    if(subquerySize + 2 > calculationContext.threshold && calculationContext.terminateEarly){
-                        throw new ApolloError(`Early termination: Query result of ${subquerySize + 2} exceeds the maximum size of ${calculationContext.threshold}`, 'RESULT_SIZE_LIMIT_EXCEEDED');
+                    let size = subquerySize + 2;  // +2 for field name and colon
+
+                    if(size > calculationContext.threshold && calculationContext.terminateEarly){
+                        let calculate = {
+                            resultSize: size,
+                            cacheHits: structures.hits,
+                            terminateEarly: calculationContext.terminateEarly,
+                            resultSizeLimit: calculationContext.threshold
+                        }
+                        throw new ApolloError(`Query result of ${size} exceeds the maximum size of ${calculationContext.threshold}`, 'EARLY_TERMINATION_RESULT_SIZE_LIMIT_EXCEEDED', calculate);
                     }
-                    return Promise.resolve(subquerySize + 2); // +2 for field name and colon
+                    return Promise.resolve(subquerySize + 2);
                 });
         });
 }
@@ -345,9 +366,6 @@ async function updateDataStructuresForObjectFieldResult(result, structures, size
                 let size = 2;                        // for '[' and ']'
                 size += resultItemSizes.length - 1;  // for the commas
                 resultItemSizes.forEach(resultItemSize => size += resultItemSize);
-                if(size > calculationContext.threshold && calculationContext.terminateEarly){
-                    throw new ApolloError(`Early termination: Query result of ${size} exceeds the maximum size of ${calculationContext.threshold}`, 'RESULT_SIZE_LIMIT_EXCEEDED');
-                }
                 return Promise.resolve(size);
             });
     } else { // sub-result is a single object
@@ -371,9 +389,6 @@ function updateDataStructuresForObjectFieldResultItem(structures, subquery, rela
     // get into the recursion for the given result item
     return populateDataStructures(structures, relatedNode, relatedNodeType, subquery.selectionSet.selections, parentForResolvers, calculationContext, path)
         .then(subquerySize => {
-            if(subquerySize + 2 > calculationContext.threshold && calculationContext.terminateEarly){
-                throw new ApolloError(`Early termination: Query result of ${subquerySize + 2} exceeds the maximum size of ${calculationContext.threshold}`, 'RESULT_SIZE_LIMIT_EXCEEDED');
-            }
             return Promise.resolve(subquerySize + 2); // +2 for '{' and '}'
         });
 }
