@@ -89,7 +89,6 @@ const typeDefs = gql`
     knows: [Person] @knowsperson(id: "friend", relation: "person")
   }
 
-
     # the schema allows the following query:
     type Query {
       Review(nr: ID!): Review @review(id: "nr", relation: "nr")
@@ -159,7 +158,7 @@ const resolvers = {
             if (limit) { // we cannot use the data loader for queries with LIMIT
                 return new Promise((resolve, reject) => {
                     const query = 'SELECT p.nr, p.label, p.comment, pfp.product FROM productfeatureproduct pfp INNER JOIN productfeature p ON pfp.productfeature = p.nr WHERE pfp.product = ' + product.nr + ' LIMIT ' + limit;
-                    dataSources.db.all(query, (error, rows) => {
+                    dataSources.loaders.db.all(query, (error, rows) => {
                         if (error) {
                             reject(error);
                         }
@@ -188,7 +187,7 @@ const resolvers = {
             if (limit) { // we cannot use the data loader for queries with LIMIT
                 return new Promise((resolve, reject) => {
                     const query = 'SELECT p.nr, p.label, p.comment, p.producer, pfp.productfeature FROM productfeatureproduct pfp INNER JOIN product p ON pfp.product = p.nr WHERE pfp.productfeature = ' + feature.nr + ' LIMIT ' + limit;
-                    dataSources.db.all(query, (error, rows) => {
+                    dataSources.loaders.db.all(query, (error, rows) => {
                         if (error) {
                             reject(error);
                         }
