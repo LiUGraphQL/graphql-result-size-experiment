@@ -1,1 +1,1 @@
-{Product(nr: 2) {productFeature(limit: 25) {products(limit: 25) {productFeature(limit: 25) {products(limit: 25) {productFeature(limit: 25){products(limit: 25){label}}}}}}}}
+{Product(nr: 2) {productFeature(limit: 3) {products(limit: 3) {productFeature(limit: 3) {products(limit: 3) {productFeature(limit: 3){products(limit: 3){label}}}}}}}}
