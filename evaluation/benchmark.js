@@ -4,26 +4,23 @@ const { calculateResultSize } = require('../test/utils.js')
 const url = 'http://localhost:4000/graphql';
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
-const { mean } = require('lodash');
-let data = {};
 
 function writeExperimentHeader(path){
-    const header = "Directory,Query,Time,Size,Threshold,Query calculator,Terminate early,Warmup,Status,Timestamp";
+    const header = "Directory,Query,Time,Size,Threshold,Query_Calculator,Terminate_early,Warmup,Status,Pending_Promize_Time,Timestamp";
     if(!fs.existsSync(path)){
         fs.closeSync(fs.openSync(path, 'w'));
     }
-    
     if(fs.readFileSync(path, {encoding:'utf8', flag:'r'}).length == 0){
-        write(header);
+        write(path, header);
     }
 }
 
-function write(string){
+function write(outputFile, string){
     console.log(string);
-    fs.appendFileSync("results.csv", string + "\n");
+    fs.appendFileSync(outputFile, string + "\n");
 }
 
-function writeResult(directory,queryFile, time, size, useQueryCalculator, threshold, terminateEarly, warmup, status){
+function writeResult(outputFile, directory,queryFile, time, size, useQueryCalculator, threshold, terminateEarly, warmup, status, pendingPromizeTime){
     let row = directory + ',';
     row += queryFile + ',';
     row += time + ',';
@@ -33,38 +30,44 @@ function writeResult(directory,queryFile, time, size, useQueryCalculator, thresh
     row += terminateEarly + ',';
     row += warmup + ',';
     row += status + ',';
+    row += pendingPromizeTime + ',';
     row += new Date().getTime();
-    write(row);
+    write(outputFile, row);
 }
 
-function runQuery(query){
+async function runQuery(query){
     const t0 = new Date();
     return rawRequest(url, query)
         .then(({ data, extensions }) => {
             const time = new Date() - t0;
             let size;
+            let pendingPromizeTime;
             if(extensions == undefined){
                 size = calculateResultSize(data);
+                pendingPromizeTime = 0;
             } else {
                 size = extensions.calculate.resultSize;
+                pendingPromizeTime = extensions.calculate.pendingPromizeTime;
             }
-            return { size, time, status: "ok" };
+            return { size, time, status: "ok", pendingPromizeTime };
         })
         .catch(e => {
             const time = new Date() - t0;
             let size = e["response"]["errors"][0]["extensions"]["resultSize"];
-            return { size, time, status: e["response"]["errors"][0]["extensions"]["code"] };
+            let pendingPromizeTime = e["response"]["errors"][0]["extensions"]["pendingPromizeTime"];
+            let status = e["response"]["errors"][0]["extensions"]["code"];
+            return { size, time, status, pendingPromizeTime };
         });
 }
 
-async function run(queryDir, useQueryCalculator, threshold, terminateEarly, warmup){
+async function run(outputFile, queryDir, useQueryCalculator, threshold, terminateEarly, warmup){
     for(const queryFile of fs.readdirSync(queryDir)){
         if(!queryFile.endsWith(".graphql")){
             continue;
         }
         const q = fs.readFileSync(queryDir + queryFile, {encoding:'utf8', flag:'r'});
-        const { size, time, status } =  await runQuery(q);
-        writeResult(queryDir, queryFile, time, size, useQueryCalculator, threshold, terminateEarly, warmup, status);
+        const { size, time, status, pendingPromizeTime } =  await runQuery(q);
+        writeResult(outputFile, queryDir, queryFile, time, size, useQueryCalculator, threshold, terminateEarly, warmup, status, pendingPromizeTime);
     }
 }
 
@@ -86,7 +89,7 @@ function main(){
         writeExperimentHeader(argv.outputFile);
         for(let i=0; i < argv.iterations + argv.warmups; i++){
             const warmup = i < argv.warmups;
-            await run(argv.queryDir, argv.useQueryCalculator, argv.threshold, argv.terminateEarly, warmup);
+            await run(argv.outputFile, argv.queryDir, argv.useQueryCalculator, argv.threshold, argv.terminateEarly, warmup);
         }
     });
 }

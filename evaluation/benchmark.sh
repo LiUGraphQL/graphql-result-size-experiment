@@ -11,13 +11,13 @@ dirs=( \
 # check all queries with low/hight threshold and early termination enabled/disabled
 for d in "${dirs[@]}"
 do
-    for t in 999999999 10000 1000
+    for t in 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000
     do
         for e in true false
         do
             sh ./run.sh \
                 -i 10 \
-                -w 5 \
+                -w 3 \
                 -d $d \
                 -t $t \
                 -e $e \
