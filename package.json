@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon app.js",
-    "test": "mocha"
+    "test": "mocha $1",
+    "benchmark-server": "node app.js --terminateEarly=false --threshold=1000000000 --useQueryCalculator=true",
+    "benchmark": "node evaluation/benchmark.js",
+    "run-benchmark": "concurrently --kill-others \"npm run benchmark-server\" \"npm run benchmark\""
   },
   "author": "Tim Andersson (modified by Robin Keskisärkkä)",
   "license": "MIT",
@@ -15,12 +18,14 @@
     "graphql": "15.3.0",
     "key-del": "^1.3.0",
     "lodash": "^4.17.21",
+    "minimist": "^1.2.5",
     "sqlite3": "^5.0.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.14",
     "chai": "^4.3.4",
+    "concurrently": "^6.4.0",
     "graphql-request": "^3.6.1",
-    "mocha": "^9.1.3"
+    "mocha": "^9.1.3",
+    "nodemon": "^2.0.14"
   }
 }
