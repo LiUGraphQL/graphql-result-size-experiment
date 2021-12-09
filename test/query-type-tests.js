@@ -8,11 +8,6 @@ const { calculateResultSize } = require('./utils.js')
 const vars = require('./query-type-tests-vars.js')
 const chai = require('chai')
 
-function pbcopy(data) {
-    var proc = require('child_process').spawn('pbcopy'); 
-    proc.stdin.write(data); proc.stdin.end();
-}
-
 describe('Query type tests', () => {
     let testServer;
     let url = 'http://localhost:4000/graphql';
@@ -144,9 +139,7 @@ describe('Query type tests', () => {
             const query = vars.acyclicQueries[q];
             rawRequest(url, query).then(({ data, extensions }) => {
                 const { resultSize } = extensions.calculate;
-                pbcopy(JSON.stringify(data))
                 chai.assert.equal(resultSize, calculateResultSize(data));
-                pbcopy(JSON.stringify(data))
                 chai.expect(data).to.eql(vars.varyingResults[q]);
                 done();
             }).catch(e => done(e));

@@ -1,5 +1,5 @@
 const { createLoaders } = require('../loaders.js');
-const { typeDefs, resolvers } = require('../schema.js')
+const { typeDefs, resolvers } = require('./resources/test-schema.js')
 const { queryCalculator } = require('../calculate/calculate.js');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { makeServer } = require('../server.js');
@@ -41,13 +41,13 @@ describe('Basic tests', () => {
         testServer.server.close(done);
     })
 
-    describe('single scalar', () => {
+    describe('scalar', () => {
         it('single ID value', (done) => {
-            const query = '{ Product(nr:6){ nr } }';
+            const query = '{ Person(nr:1){ nr } }';
             rawRequest(url, query).then(({data, extensions}) => {
                 const { resultSize } = extensions.calculate;
                 chai.assert.equal(resultSize, calculateResultSize(data));
-                chai.expect(data).to.eql({ Product: { nr: 6 } });
+                chai.expect(data).to.eql({ Person: { nr: 1 } });
                 done();
             }).catch(e => {
                 done(e);
@@ -55,11 +55,11 @@ describe('Basic tests', () => {
         });
 
         it('single string value', (done) => {
-            const query = '{ Product(nr:6){ label } }';
+            const query = '{ Person(nr:1){ name } }';
             rawRequest(url, query).then(({data, extensions}) => {
                 const { resultSize } = extensions.calculate;
                 chai.assert.equal(resultSize, calculateResultSize(data));
-                chai.expect(data).to.eql({ Product: { label: 'liars drinker' } });
+                chai.expect(data).to.eql({ Person: { name: 'Ruggiero-Delane' } });
                 done();
             }).catch(e => {
                 done(e);
@@ -90,66 +90,54 @@ describe('Basic tests', () => {
             });
         });
 
-        it('object null value', (done) => {
-            const query = '{ Product(nr:0){ nr } }';
+        it('array of strings', (done) => {
+            const query = '{ Review(nr:1){ ratings } }';
             rawRequest(url, query).then(({data, extensions}) => {
                 const { resultSize } = extensions.calculate;
-                chai.assert.equal(resultSize, calculateResultSize(data));
-                chai.expect(data).to.eql({ Product: null });
+                chai.expect(resultSize).to.eql(calculateResultSize(data));
+                chai.expect(data).to.eql({ Review: { ratings: [ null, 10, 10, null ] } });
                 done();
             }).catch(e => {
                 done(e);
             });
         });
     });
-    
-    describe('object array', () => {
-        it('ID value', (done) => {
-            const query = '{ Product(nr:6){ reviews { nr } } }';
+
+    describe('object', () => {
+        it('array query', (done) => {
+            const query = '{ Persons(limit:3){ nr } }';
             rawRequest(url, query).then(({data, extensions}) => {
                 const { resultSize } = extensions.calculate;
                 chai.assert.equal(resultSize, calculateResultSize(data));
-                chai.expect(data).to.eql({"Product":{"reviews":[{"nr":1172},{"nr":1487},{"nr":2242},{"nr":4708},{"nr":5124}]}});
+                chai.expect(data).to.eql({ Persons: [ { nr: 1 }, { nr: 2 }, { nr: 3 }] });
                 done();
             }).catch(e => {
                 done(e);
             });
         });
 
-        it('string value', (done) => {
-            const query = '{ Product(nr:6){ reviews { title } } }';
+        it('object field', (done) => {
+            const query = '{ Person(nr:1){ reviews { nr } } }';
             rawRequest(url, query).then(({data, extensions}) => {
                 const { resultSize } = extensions.calculate;
                 chai.assert.equal(resultSize, calculateResultSize(data));
-                chai.expect(data).to.eql({"Product":{"reviews":[{"title":"teazelling manipulating queerly coracle seaports nauseam maladies solves craal chlorination dislocate valerian"},{"title":"christianized airframes sticker lockjaw unconscionable antiparliamentarians burred errantly calculation capful nonfictional"},{"title":"futurologists bluchers unobjectionable punny rotting fusileers hardhats mislabels kinematics chrisms preparers spigots hyperglycemic cougher dandlers"},{"title":"nonzebra delicatessens likings unchanging cacophonously mucked assures unpolitical milkmaid constancy purposelessness"},{"title":"sticked enjoins blankness swampish lamplighter fusiliers"}]}});
+                chai.expect(data).to.eql({"Person":{"reviews":[{"nr":1},{"nr":2},{"nr":3},{"nr":4},{"nr":5},{"nr":6},{"nr":7},{"nr":8},{"nr":9},{"nr":10},{"nr":11},{"nr":12},{"nr":13},{"nr":14},{"nr":15}]}});
                 done();
             }).catch(e => {
                 done(e);
             });
         });
 
-        it('int value', (done) => {
-            const query = '{ Product(nr:6){ reviews { rating1 } } }';
+        it('object array field', (done) => {
+            const query = '{ Review(nr:1){ reviewer { nr } } }';
             rawRequest(url, query).then(({data, extensions}) => {
                 const { resultSize } = extensions.calculate;
                 chai.assert.equal(resultSize, calculateResultSize(data));
-                chai.expect(data).to.eql({"Product":{"reviews":[{"rating1":1},{"rating1":null},{"rating1":3},{"rating1":null},{"rating1":null}]}});
+                chai.expect(data).to.eql({ Review: { reviewer: { nr: 1 } } });
                 done();
             }).catch(e => {
                 done(e);
             });
         });
-
-        it('object null value', (done) => {
-            const query = '{ Product(nr:0){ reviews { rating1 } } }';
-            rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
-                chai.assert.equal(resultSize, calculateResultSize(data));
-                chai.expect(data).to.eql({"Product":null});
-                done();
-            }).catch(e => {
-                done(e);
-            });
-        });
-    });
+    }); 
 });

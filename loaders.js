@@ -6,6 +6,7 @@ function createLoaders() {
   return {
     reviewLoader: new DataLoader(reviewLoader),
     personLoader: new DataLoader(personLoader),
+    personsLoader: new DataLoader(personsLoader),
     productLoader: new DataLoader(productLoader),
     offerLoader: new DataLoader(offerLoader),
     vendorOffersLoader: new DataLoader(vendorOffersLoader),
@@ -35,9 +36,24 @@ function reviewLoader(reviewIds) {
         if (rows.length == 0) {
           return resolve([null])
         }
+
         return resolve(rows.map(
           review => review
         ));
+      }
+    });
+  });
+}
+
+/* Added for testing purposes. */
+function personsLoader(limit) {
+  return new Promise((resolve, reject) => {
+    return db.all('SELECT nr, name, mbox_sha1sum, country FROM Person LIMIT ' + limit, (error, rows) => {
+      if (error) {
+        reject(error);
+      }
+      else {
+        return resolve([rows]);
       }
     });
   });
