@@ -1,6 +1,14 @@
 const DataLoader = require('dataloader');
 const sqlite3 = require('sqlite3');
-const db = new sqlite3.Database('./database.db');
+let db = new sqlite3.Database('./database.db');
+
+/**
+ * Function used to specify a specific database file for evaluation purposes.
+ * @param {*} filepath 
+ */
+function setDB(filepath){
+  db = new sqlite3.Database(filepath);
+}
 
 function createLoaders() {
   return {
@@ -347,6 +355,7 @@ function producerProductsLoader(producerIds) {
 }
 
 module.exports = {
+  setDB,
   createLoaders,
   db
 };
