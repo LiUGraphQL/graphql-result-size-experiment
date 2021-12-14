@@ -2,7 +2,6 @@ const { setDB, createLoaders } = require('./loaders.js');
 const { typeDefs, resolvers } = require('./schema.js')
 const { queryCalculator } = require('./calculate/calculate.js');
 const { queryCalculatorNE } = require('./calculate/calculateNE.js');
-const { queryCalculator } = require('./calculate/calculate.js');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { makeServer } = require('./server.js');
 
