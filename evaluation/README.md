@@ -1,0 +1,2 @@
+- Generate the experiment `database.db` file by executing `run.sh` from the direcory `bsbm/`. Edit the arguments to increase or decrease the database size.
+- Execute `benchmark.sh`. The results will be stored in `results/results.csv` by default.
