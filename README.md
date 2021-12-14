@@ -1,3 +1,34 @@
+TODO:
+- Aliases for fields are not properly supported in results
+
+"apollo-server-express": "^3.4.0",
+"dataloader": "^2.0.0",
+"graphql": "^15.6.1",
+"graphql-request": "^3.6.1",
+"graphql-tools": "^8.2.0",
+"mocha": "^9.1.3",
+"sqlite3": "^5.0.2"
+
+
+# Changes in apollo-server v.3.0.0
+- _Dropped support for the graphql-extensions API (e.g., GraphQLExtensions, extensions) in favor of the Apollo Server plugins API._ The new version leverages the plugin feature.
+- _Removed the tracing option passed to the ApolloServer constructor. The corresponding apollo-tracing package has been deprecated and is no longer being published._ Skip tracing for now.
+
+https://github.com/apollographql/apollo-server/blob/main/CHANGELOG.md
+- _Apollo Server now always fires the willSendResponse plugin lifecycle event after firing didEncounterError. _
+We should be able to leverage this to abort processing, right?
+
+Life-cycle methods: https://www.apollographql.com/docs/apollo-server/integrations/plugins-event-reference/
+- requestDidStart: Setup base for calculation? Can return alts for lifecycle methods (e.g., don't calc for mutations)
+- 
+
+
+Compile apollo-server prior to import
+# Install lerna
+$ npm i -D lerna
+# Run compile
+
+
 # Example GraphQL Server
 This repo contains everything related to the concrete SQLite-based GraphQL implementation with result size calculation that Andreas Lundquist has used for his experiments, as documented in his Master's thesis titled [Combining Result Size Estimation and Query Execution for the GraphQL Query Language](http://urn.kb.se/resolve?urn=urn%3Anbn%3Ase%3Aliu%3Adiva-167086).
 
