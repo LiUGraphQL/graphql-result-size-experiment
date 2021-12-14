@@ -6,7 +6,7 @@ const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 
 function writeExperimentHeader(path){
-    const header = "Directory,Query,Time,Size,Threshold,Query_Calculator,Terminate_early,Warmup,Status,Pending_Promize_Time,Timestamp";
+    const header = "Directory,Query,Time,Size,Threshold,Terminate_early,Warmup,Status,Waiting_On_Promises,Cache_Hits,Timestamp";
     if(!fs.existsSync(path)){
         fs.closeSync(fs.openSync(path, 'w'));
     }
@@ -20,58 +20,62 @@ function write(outputFile, string){
     fs.appendFileSync(outputFile, string + "\n");
 }
 
-function writeResult(outputFile, directory,queryFile, time, size, useQueryCalculator, threshold, terminateEarly, warmup, status, pendingPromizeTime){
+function writeResult(outputFile, directory,queryFile, time, size, threshold, terminateEarly, warmup, status, waitingOnPromises, cacheHits){
     let row = directory + ',';
     row += queryFile + ',';
     row += time + ',';
     row += size + ',';
     row += threshold + ',';
-    row += useQueryCalculator + ',';
     row += terminateEarly + ',';
     row += warmup + ',';
     row += status + ',';
-    row += pendingPromizeTime + ',';
+    row += waitingOnPromises + ',';
+    row += cacheHits + ',';
     row += new Date().getTime();
     write(outputFile, row);
 }
 
 async function runQuery(query){
-    const t0 = new Date();
+    const start = performance.now();
     return rawRequest(url, query)
         .then(({ data, extensions }) => {
-            const time = new Date() - t0;
+            const time = performance.now() - start;
             let size;
-            let pendingPromizeTime;
+            let waitingOnPromises;
             if(extensions == undefined){
                 size = calculateResultSize(data);
-                pendingPromizeTime = 0;
+                waitingOnPromises = 0;
+                cacheHits = -1;
             } else {
                 size = extensions.calculate.resultSize;
-                pendingPromizeTime = extensions.calculate.pendingPromizeTime;
+                waitingOnPromises = extensions.calculate.waitingOnPromises || 0;
+                cacheHits = extensions.calculate.cacheHits;
             }
-            return { size, time, status: "ok", pendingPromizeTime };
+            return { size, time, status: "ok", waitingOnPromises, cacheHits };
         })
         .catch(e => {
-            const time = new Date() - t0;
+            const time = performance.now() - start;
             let size = e["response"]["errors"][0]["extensions"]["resultSize"];
-            let pendingPromizeTime = e["response"]["errors"][0]["extensions"]["pendingPromizeTime"];
+            let waitingOnPromises = e["response"]["errors"][0]["extensions"]["waitingOnPromises"]  || 0;
+            let cacheHits = e["response"]["errors"][0]["extensions"]["cacheHits"];
             let status = e["response"]["errors"][0]["extensions"]["code"];
-            return { size, time, status, pendingPromizeTime };
+            return { size, time, status, waitingOnPromises, cacheHits };
         });
 }
 
-async function run(outputFile, queryDir, useQueryCalculator, threshold, terminateEarly, warmup){
+async function run(outputFile, queryDir, threshold, terminateEarly, warmup){
     for(const queryFile of fs.readdirSync(queryDir)){
         if(!queryFile.endsWith(".graphql")){
             continue;
         }
         const q = fs.readFileSync(queryDir + queryFile, {encoding:'utf8', flag:'r'});
-        const { size, time, status, pendingPromizeTime } =  await runQuery(q);
-        writeResult(outputFile, queryDir, queryFile, time, size, useQueryCalculator, threshold, terminateEarly, warmup, status, pendingPromizeTime);
+        const { size, time, status, waitingOnPromises, cacheHits } =  await runQuery(q);
+        writeResult(outputFile, queryDir, queryFile, time, size, threshold, terminateEarly, warmup, status, waitingOnPromises, cacheHits);
+        //await sleep(500);
     }
 }
 
-function main(){
+async function main(){
     console.info(`Waiting for server to become available at ${url}`);
     let urlGet = url.replace(/^http(s?)(.+$)/, 'http$1-get$2');
     const opts = {
@@ -89,8 +93,14 @@ function main(){
         writeExperimentHeader(argv.outputFile);
         for(let i=0; i < argv.iterations + argv.warmups; i++){
             const warmup = i < argv.warmups;
-            await run(argv.outputFile, argv.queryDir, argv.useQueryCalculator, argv.threshold, argv.terminateEarly, warmup);
+            await run(argv.outputFile, argv.queryDir, argv.threshold, argv.terminateEarly, warmup);
         }
+    });
+}
+
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
     });
 }
 
