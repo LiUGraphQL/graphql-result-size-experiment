@@ -1,8 +1,10 @@
+
 #/bin/bash
 function prepare_file {
-    # 1: DB creation is implicit in sqlite
-    # 2-7: not supported in sqlite
-    # 8: remove any trailing ',' in table creation following the above ops
+    # 1-2: Remove DB creation and selection
+    # 3-8: not supported in sqlite
+    # 9 remove empty lines
+    # 10-13: remove any trailing ',' in table creation following the above ops
     sed \
     -e 's/CREATE DATABASE IF NOT EXISTS `benchmark` DEFAULT CHARACTER SET utf8;//' \
     -e 's/USE `benchmark`;//' \
@@ -11,8 +13,13 @@ function prepare_file {
     -e 's/LOCK TABLES .* WRITE;//' \
     -e 's/ALTER TABLE .* KEYS;//' \
     -e 's/UNLOCK TABLES;//' \
-    -e 's/INDEX USING BTREE (.*),\{0,1\}//' \
-    $1 | perl -0777 -pe 's/,\s+\)/\n\)/gm'
+    -e 's/INDEX USING BTREE .*,\?//' \
+    -e 's/^[ ]*$//' \
+    -e '/^$/d' $1 |
+    tr '\n' '\f' |
+    sed 's/,\f)/\f)/g' |
+    tr '\f' '\n'
+
 }
 
 prepare_file 01ProductFeature.sql > 01ProductFeature.sqlite
@@ -25,6 +32,7 @@ prepare_file 07Vendor.sql > 07Vendor.sqlite
 prepare_file 08Offer.sql > 08Offer.sqlite
 prepare_file 09Person.sql > 09Person.sqlite
 prepare_file 10Review.sql > 10Review.sqlite
+
 touch database.db
 sqlite3 database.db < 01ProductFeature.sqlite
 sqlite3 database.db < 02ProductType.sqlite
@@ -36,5 +44,4 @@ sqlite3 database.db < 07Vendor.sqlite
 sqlite3 database.db < 08Offer.sqlite
 sqlite3 database.db < 09Person.sqlite
 sqlite3 database.db < 10Review.sqlite
-
 sqlite3 database.db < knowsperson.sqlite
