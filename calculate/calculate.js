@@ -26,6 +26,9 @@ const { ApolloError } = require('apollo-server-errors');
  * @return {object}                returns the query result in JSON format
  */
 function queryCalculator(requestContext) {
+    // Start time
+    const startTime = performance.now();
+
     // Build execution context 
     const { request, document } = requestContext;
     const variableValues = request.variables;
@@ -43,8 +46,9 @@ function queryCalculator(requestContext) {
         exeContext,
         fieldNodes,
         threshold: contextValue.threshold,
-        errorCode: undefined,
-        earlyTerminationTimestamp: undefined
+        errorCode: null,
+        terminateEarly: contextValue.terminateEarly,
+        earlyTerminationTimestamp: null
     };
 
     const structures = {
@@ -55,6 +59,14 @@ function queryCalculator(requestContext) {
         globalSize: 0
     };
 
+    // set timer to abort calculation (if provided)
+    let timer;
+    if(contextValue.timeout && contextValue.timeout > 0){
+        timer = setTimeout(() => {
+            calculationContext.errorCode = 'MAX_QUERY_TIME_EXCEEDED';
+        }, contextValue.timeout);
+    }
+
     // Parse query to remove location properties
     const query = deleteKey(document.definitions[0].selectionSet.selections, 'loc');
     const rootNodeType = schema.getQueryType();
@@ -63,27 +75,42 @@ function queryCalculator(requestContext) {
 
     return populateDataStructures(structures, rootNode, rootNodeType, query, parentForResolvers, calculationContext, undefined)
         .then(resultSize => {
-            let curKey = getMapKey(rootNode, query);
-            let calculate = {
+            if(timer) {
+                clearTimeout(timer);
+            }
+
+            let response = {
                 resultSize,
                 cacheHits: structures.hits,
                 resultSizeLimit: calculationContext.threshold,
-                waitingOnPromises: 0
+                calculationTime: performance.now() - startTime,
+                timeout: contextValue.timeout,
+                threshold: calculationContext.threshold,
+                terminateEarly: calculationContext.terminateEarly
             }
-
+            
             if(calculationContext.errorCode){
-                calculate.waitingOnPromises = performance.now() - calculationContext.earlyTerminationTimestamp;
-                throw new ApolloError(`Query result of ${structures.globalSize} exceeds the maximum size of ${calculationContext.threshold}`,
-                    calculationContext.errorCode, calculate);
+                response.errorCode = calculationContext.errorCode;
             } else if (resultSize > calculationContext.threshold) {
-                throw new ApolloError(`Query result of ${resultSize} exceeds the maximum size of ${calculationContext.threshold}`,
-                    'RESULT_SIZE_LIMIT_EXCEEDED', calculate);
+                response.errorCode = 'RESULT_SIZE_LIMIT_EXCEEDED';
             }
 
+            if(response.errorCode){
+                response.resultTime = performance.now() - startTime;
+                if(calculationContext.earlyTerminationTimestamp){
+                    response.waitingOnPromises = performance.now() - calculationContext.earlyTerminationTimestamp;
+                }
+                throw new ApolloError(response.errorCode, response);
+            }
+
+            response.errorCode = 'OK';
             // Create result
+            let curKey = getMapKey(rootNode, query);
+            let = data = `{ ${ produceResult(structures.resultMap, curKey)} }`;
+            response.resultTime = performance.now() - startTime;
             let result = {
-                data: `{ ${produceResult(structures.resultMap, curKey)} }`, //JSON.parse(`{ ${produceResult(structures.resultMap, curKey)} }`),
-                extensions: { calculate }
+                data, //JSON.parse(`{ ${produceResult(structures.resultMap, curKey)} }`),
+                extensions: { response }
             };
             return result;
         })
@@ -227,7 +254,7 @@ function updateDataStructuresForScalarField(structures, mapKey, uType, subquery,
         fieldDef = getFieldDef(calculationContext.schema, uType, fieldName);
     }
     path = extendPath(path, fieldName);
-    if(checkEarlyTermination(structures, calculationContext)){
+    if(checkTermination(structures, calculationContext)){
         return Promise.resolve(0);
     }
     return resolveField(subquery, uType, fieldDef, parentForResolvers, calculationContext, path)
@@ -299,7 +326,7 @@ function updateDataStructuresForObjectField(structures, mapKey, uType, subquery,
     let fieldName = subquery.name.value;
     let fieldDef = uType.getFields()[fieldName];
     path = extendPath(path, fieldName);
-    if(checkEarlyTermination(structures, calculationContext)){
+    if(checkTermination(structures, calculationContext)){
         return Promise.resolve(0);
     }
     return resolveField(subquery, uType, fieldDef, parentForResolvers, calculationContext, path)
@@ -402,15 +429,17 @@ function extendPath(prev, key) {
     return { prev: prev, key: key };
 }
 
-function checkEarlyTermination(structures, calculationContext){
+function checkTermination(structures, calculationContext){
     // check for results size exception
     if(calculationContext.errorCode){
         return true;
-    } else if(structures.globalSize > calculationContext.threshold) {
+    } else if(calculationContext.earlyTermination
+              && structures.globalSize > calculationContext.threshold) {
         calculationContext.errorCode = 'EARLY_TERMINATION_RESULT_SIZE_LIMIT_EXCEEDED';
         calculationContext.earlyTerminationTimestamp = performance.now();
         return true;
     }
+    return false;
 }
 
 /**
