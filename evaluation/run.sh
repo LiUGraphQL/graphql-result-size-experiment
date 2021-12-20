@@ -36,6 +36,8 @@ while getopts ":ho:i:w:c:t:e:d:x:" option; do
         d=$OPTARG;;
       x)  # database directory
         x=$OPTARG;;
+      c)  # use query calculator
+        c=$OPTARG;;
       \?) # Invalid option
         echo "Error: Invalid option."
         help
@@ -47,21 +49,23 @@ o=${o:-"results.csv"}  # output
 i=${i:-1}              # iterations
 w=${w:-1}              # warmups
 t=${t:-10000}          # threshold
-e=${e:-false}          # use early termination
-# use query calculator
+e=${e:-true}           # use early termination
+c=${c:-true}           # use query calculator
+
 if [ -z "$d" ]; then
   echo "Error: No query directory has been defined."
   exit
 fi
 
 run(){
-  o=$1 # output
-  i=$2 # iterations
-  w=$3 # warmups
-  t=$4 # threshold
-  e=$5 # early termination
-  d=$6 # query directory
+  o=$1  # output
+  i=$2  # iterations
+  w=$3  # warmups
+  t=$4  # threshold
+  e=$5  # early termination
+  d=$6  # query directory
   db=$7 # database path
+  c=$8  # use calculator executor
   echo "Start GraphQL server"
   cd ..
   node ./app.js \
@@ -74,13 +78,12 @@ run(){
   echo "Run tests"
   cd ./evaluation
   node benchmark.js \
-    --threshold=$t \
-    --terminateEarly=$e \
     --outputFile=$o \
     --iterations=$i \
     --warmups=$w \
-    --queryDir=$d
+    --queryDir=$d \
+    --useQueryCalculator=$c
   kill $server
 }
 
-run $o $i $w $t $e $d $x
+run $o $i $w $t $e $d $x $c

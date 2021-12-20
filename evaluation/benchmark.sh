@@ -6,24 +6,37 @@ dirs=( \
     ./queries/varying/ \
     ./queries/blowup/ \
     ./queries/extreme-blowup/
-    #./queries/mix/
+    ./queries/mix/
 )
+
 
 # check all queries with low/hight threshold and early termination enabled/disabled
 for d in "${dirs[@]}"
 do
-    for t in 10000
+    for t in 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000
     do
         for e in false true
         do
             sh ./run.sh \
-                -i 10 \
-                -w 2 \
+                -i 20 \
+                -w 5 \
                 -d $d \
                 -t $t \
                 -e $e \
                 -o "results/results.csv" \
-                -x 'evaluation/database.db'
+                -x "evaluation/database.db"
         done
     done
 done
+
+for d in "${dirs[@]}"
+do
+    sh ./run.sh \
+        -i 20 \
+        -w 5 \
+        -d $d \
+        -c "false" \
+        -o "results/results.csv" \
+        -x "evaluation/database.db"
+done
+

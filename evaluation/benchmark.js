@@ -6,71 +6,80 @@ const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 
 function writeExperimentHeader(path){
-    const header = "Directory,Query,Time,Size,Threshold,Terminate_early,Warmup,Status,Waiting_On_Promises,Cache_Hits,Timestamp";
+    const fields = [
+        'queryDir', 'queryFile', 'warmup',
+        'cacheHits', 'threshold',
+        'resultSize', 'resultSizeLimit',
+        'terminateEarly', 'timeout',
+        'calculationTime', 'resultTime',
+        'responseTime', 'waitingOnPromises',
+        'errorCode', 'useQueryCalculator'
+    ];
     if(!fs.existsSync(path)){
         fs.closeSync(fs.openSync(path, 'w'));
     }
     if(fs.readFileSync(path, {encoding:'utf8', flag:'r'}).length == 0){
-        write(path, header);
+        write(path, fields.join(','));
     }
 }
 
 function write(outputFile, string){
     console.log(string);
-    fs.appendFileSync(outputFile, string + "\n");
+    fs.appendFileSync(outputFile, string + '\n');
 }
 
-function writeResult(outputFile, directory,queryFile, time, size, threshold, terminateEarly, warmup, status, waitingOnPromises, cacheHits){
-    let row = directory + ',';
-    row += queryFile + ',';
-    row += time + ',';
-    row += size + ',';
-    row += threshold + ',';
-    row += terminateEarly + ',';
-    row += warmup + ',';
-    row += status + ',';
-    row += waitingOnPromises + ',';
-    row += cacheHits + ',';
-    row += new Date().getTime();
-    write(outputFile, row);
+function writeResult(outputFile, result){
+    const fields = [
+        'queryDir', 'queryFile', 'warmup',
+        'cacheHits', 'threshold',
+        'resultSize', 'resultSizeLimit',
+        'terminateEarly', 'timeout',
+        'calculationTime', 'resultTime',
+        'responseTime', 'waitingOnPromises',
+        'errorCode', 'useQueryCalculator'
+    ];
+    let row = [];
+    for(let field of fields){
+        if(result[field] === undefined){
+            row.push('NA');
+        } else {
+            row.push(result[field]);
+        }
+    }
+    write(outputFile, row.join(','));
 }
 
 async function runQuery(query){
     const start = performance.now();
     return rawRequest(url, query)
         .then(({ data, extensions }) => {
-            const time = performance.now() - start;
-            let size;
-            let waitingOnPromises;
             if(extensions == undefined){
-                size = calculateResultSize(data);
-                waitingOnPromises = 0;
-                cacheHits = -1;
+                const response = {};
+                response.resultSize = calculateResultSize(data);
+                response.responseTime = performance.now() - start;
+                return response;
             } else {
-                size = extensions.calculate.resultSize;
-                waitingOnPromises = extensions.calculate.waitingOnPromises || 0;
-                cacheHits = extensions.calculate.cacheHits;
+                const response = extensions.response;
+                response.responseTime = performance.now() - start;
+                return response;
             }
-            return { size, time, status: "ok", waitingOnPromises, cacheHits };
         })
         .catch(e => {
-            const time = performance.now() - start;
-            let size = e["response"]["errors"][0]["extensions"]["resultSize"];
-            let waitingOnPromises = e["response"]["errors"][0]["extensions"]["waitingOnPromises"]  || 0;
-            let cacheHits = e["response"]["errors"][0]["extensions"]["cacheHits"];
-            let status = e["response"]["errors"][0]["extensions"]["code"];
-            return { size, time, status, waitingOnPromises, cacheHits };
+            const response = e['response']['errors'][0]['extensions']['code'];
+            response.responseTime = performance.now() - start;
+            return response;
         });
 }
 
-async function run(outputFile, queryDir, threshold, terminateEarly, warmup){
+async function run(outputFile, queryDir, warmup, useQueryCalculator){
     for(const queryFile of fs.readdirSync(queryDir)){
-        if(!queryFile.endsWith(".graphql")){
+        if(!queryFile.endsWith('.graphql')){
             continue;
         }
         const q = fs.readFileSync(queryDir + queryFile, {encoding:'utf8', flag:'r'});
-        const { size, time, status, waitingOnPromises, cacheHits } =  await runQuery(q);
-        writeResult(outputFile, queryDir, queryFile, time, size, threshold, terminateEarly, warmup, status, waitingOnPromises, cacheHits);
+        const response =  await runQuery(q);
+
+        writeResult(outputFile, { ...{ 'queryDir': queryDir, 'queryFile': queryFile, warmup, useQueryCalculator }, ...response });
         //await sleep(500);
     }
 }
@@ -93,7 +102,7 @@ async function main(){
         writeExperimentHeader(argv.outputFile);
         for(let i=0; i < argv.iterations + argv.warmups; i++){
             const warmup = i < argv.warmups;
-            await run(argv.outputFile, argv.queryDir, argv.threshold, argv.terminateEarly, warmup);
+            await run(argv.outputFile, argv.queryDir, warmup, argv.useQueryCalculator);
         }
     });
 }
