@@ -2,95 +2,73 @@ options(scipen=999)
 library(ggplot2)
 require(plyr)
 
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-  
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-  
-  numPlots = length(plots)
-  
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                     ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-  
-  if (numPlots==1) {
-    print(plots[[1]])
-    
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
-
-
 df <- read.csv("results.csv", header = T)
-df <- df[df$Warmup == "false",]
-df$Time <- as.numeric(as.character(df$Time))
-df$Pending_Promize_Time <- as.numeric(as.character(df$Pending_Promize_Time))
+head(df)
+df <- df[df$warmup == "false",]
+df[df=="NA"]<- NA
+df$threshold <- as.numeric(as.character(df$threshold))
+df$resultSize <- as.numeric(as.character(df$resultSize))
+df$resultSizeLimit <- as.numeric(as.character(df$resultSizeLimit))
+df$timeout <- as.numeric(as.character(df$timeout))
+df$calculationTime <- as.numeric(as.character(df$calculationTime))
+df$resultTime <- as.numeric(as.character(df$resultTime))
+df$responseTime <- as.numeric(as.character(df$responseTime))
+df$waitingOnPromises <- as.numeric(as.character(df$waitingOnPromises))
 
 data_summary <- function(data, varname, groupnames){
   summary_func <- function(x, col){
     c(mean = mean(x[[col]], na.rm=TRUE),
       min = min(x[[col]], na.rm=TRUE),
       max = max(x[[col]], na.rm=TRUE),
-      sd = sd(x[[col]], na.rm=TRUE),
-      Waiting_On_Promises = mean(x[["Waiting_On_Promises"]], na.rm=TRUE) # hack
+      sd = sd(x[[col]], na.rm=TRUE)
       )
   }
   data_sum<-ddply(data, groupnames, .fun=summary_func, varname)
   data_sum <- rename(data_sum, c("mean" = varname))
   return(data_sum)
 }
-df2 <- data_summary(df, "Time", c("Query", "Threshold", "Terminate_early"))
-write.csv(df2,"results-summary.csv", row.names = FALSE)
-head(df2)
-df2
 
-for(query in unique(df2$Query)){
-  plots <- list()
-  for(limit in unique(df2$Threshold)){
-    df3 <- df2[df2$Threshold==limit,]
-    df3 <- dplyr::filter(df3, grepl(paste("^", query, sep=""), Query))
+df_responseTime <- data_summary(df, "responseTime", c("queryFile", "threshold", "terminateEarly"))
+df_responseTime$threshold[is.na(df_responseTime$threshold)] <- 10000
+df_responseTime
+
+#write.csv(df_resultTime,"results-summary.csv", row.names = FALSE)
+head(df_responseTime)
+
+for(query in unique(df_responseTime$queryFile)){
+  for(limit in unique(df_responseTime$threshold)){
+    if(is.na(limit)) {
+      next
+    }
+    d <- df_responseTime[df_responseTime$threshold==limit,]
+    d <- dplyr::filter(d, grepl(paste("^", query, sep=""), queryFile))
     
     stringr::str_split(query, "\\.")[0]
     title <- gsub("\\.graphql$", "", query)
-    p <- ggplot(df3, aes(x=Query, y=Time, fill=Terminate_early)) + 
+    p <- ggplot(d, aes(x=queryFile, y=responseTime, fill=terminateEarly)) + 
       geom_bar(stat="identity", color="black", position=position_dodge()) +
-      geom_errorbar(aes(ymin=Time-sd*1.6, ymax=Time+sd*1.6), width=.2, position=position_dodge(.9)) +
-      ggtitle(paste(title, "with", limit))
+      geom_errorbar(aes(ymin=responseTime-sd*1.6, ymax=responseTime+sd*1.6), width=.2, position=position_dodge(.9)) +
+      ggtitle(paste(title, "with", limit)) + 
+      scale_y_continuous(trans='log2')
+    ggplot(df,aes(x,y))+geom_point()+geom_hline(yintercept=0.5)
     ggsave(paste("plots/", title, "-limit-", limit, ".pdf", sep=""), p)
-    #print(p)
-    #plots[[length(plots) + 1]] <- p
+    print(p)
   }
-  #multiplot(plotlist=plots, cols=3)
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+# NOT UPDATED WITH NEW COL NAMES
 # The latter part of this script is used to create a stacked bar plot that visualizes
 # the propotion of time spent on 
 # pending promises
