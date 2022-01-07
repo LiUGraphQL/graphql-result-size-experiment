@@ -68,7 +68,7 @@ run(){
   c=$8  # use calculator executor
   echo "Start GraphQL server"
   cd ..
-  node ./app.js \
+  node --max-old-space-size=8192 ./app.js \
     --useQueryCalculator=$c \
     --threshold=$t \
     --terminateEarly=$e \
