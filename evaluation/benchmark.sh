@@ -9,6 +9,32 @@ dirs=( \
     ./queries/mix/
 )
 
+for d in "${dirs[@]}"
+do
+    sh ./run.sh \
+        -i 20 \
+        -w 5 \
+        -d $d \
+        -c "false" \
+        -o "results/results.csv" \
+        -x "evaluation/database.db"
+done
+
+# high threshold
+for d in "${dirs[@]}"
+do
+    for t in 999999999
+    do
+        sh ./run.sh \
+            -i 20 \
+            -w 5 \
+            -d $d \
+            -t $t \
+            -e "false" \
+            -o "results/results.csv" \
+            -x "evaluation/database.db"
+    done
+done
 
 # check all queries with low/hight threshold and early termination enabled/disabled
 for d in "${dirs[@]}"
@@ -29,14 +55,5 @@ do
     done
 done
 
-for d in "${dirs[@]}"
-do
-    sh ./run.sh \
-        -i 20 \
-        -w 5 \
-        -d $d \
-        -c "false" \
-        -o "results/results.csv" \
-        -x "evaluation/database.db"
-done
+
 
