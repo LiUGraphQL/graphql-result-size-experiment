@@ -65,7 +65,10 @@ async function runQuery(query){
             }
         })
         .catch(e => {
-            const response = e['response']['errors'][0]['extensions']['code'];
+            let response = {};
+            if(e['response'] && e['response']['errors']){
+                response = e['response']['errors'][0]['extensions']['code'];
+            }
             response.responseTime = performance.now() - start;
             return response;
         });
