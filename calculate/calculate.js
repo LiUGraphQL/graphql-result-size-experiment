@@ -433,7 +433,7 @@ function checkTermination(structures, calculationContext){
     // check for results size exception
     if(calculationContext.errorCode){
         return true;
-    } else if(calculationContext.earlyTermination
+    } else if(calculationContext.terminateEarly
               && structures.globalSize > calculationContext.threshold) {
         calculationContext.errorCode = 'EARLY_TERMINATION_RESULT_SIZE_LIMIT_EXCEEDED';
         calculationContext.earlyTerminationTimestamp = performance.now();
