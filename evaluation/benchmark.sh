@@ -6,7 +6,6 @@ dirs=( \
     ./queries/varying/ \
     ./queries/blowup/ \
     ./queries/extreme-blowup/
-    ./queries/mix/
 )
 
 for d in "${dirs[@]}"
