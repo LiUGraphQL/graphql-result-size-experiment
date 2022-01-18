@@ -1,12 +1,12 @@
-const { createLoaders } = require('../loaders.js');
-const { typeDefs, resolvers } = require('./resources/test-schema.js')
-const { queryCalculator } = require('../calculate/calculate.js');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-const { makeServer } = require('../server.js');
-const { rawRequest } = require('graphql-request');
-const { calculateResultSize } = require('./utils.js')
+import { createLoaders } from '../loaders.js';
+import { typeDefs, resolvers } from './resources/test-schema.js';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { makeServer } from '../server.js';
+import { rawRequest } from 'graphql-request';
+import chai from 'chai';
+import { queryCalculator } from 'graphql-result-size';
+import { calculateResultSize } from './utils.js';
 
-const chai = require('chai')
 
 describe('Basic tests', () => {
     let testServer;

@@ -10,8 +10,8 @@
 function calculateResultSize(result){
     if(typeof result == 'object'){
         result = JSON.stringify(result);
-        result = result.substring(1,result.length-1);
     }
+    result = result.substring(1,result.length-1);
     // strings
     result = result.replace(/".+?"/g, 'S');
     // numbers
@@ -23,6 +23,4 @@ function calculateResultSize(result){
     return result.length;
 }
 
-module.exports = { calculateResultSize };
-
-//calculateResultSize({"hej": "test" });
+export { calculateResultSize };
