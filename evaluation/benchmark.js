@@ -1,9 +1,10 @@
-const { rawRequest } = require('graphql-request');
-const waitOn = require('wait-on');
-const { calculateResultSize } = require('../test/utils.js')
+import { rawRequest } from 'graphql-request';
+import waitOn from 'wait-on';
+import { calculateResultSize } from '../test/utils.js';
+import minimist from 'minimist';
+const argv = minimist(process.argv.slice(2));
+import fs from 'fs';
 const url = 'http://localhost:4000/graphql';
-const argv = require('minimist')(process.argv.slice(2));
-const fs = require('fs');
 
 function writeExperimentHeader(path){
     const fields = [

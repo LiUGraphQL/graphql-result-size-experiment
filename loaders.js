@@ -1,5 +1,6 @@
-const DataLoader = require('dataloader');
-const sqlite3 = require('sqlite3');
+import DataLoader from 'dataloader';
+import sqlite3 from 'sqlite3';
+
 let db = new sqlite3.Database('./database.db');
 
 /**
@@ -354,7 +355,7 @@ function producerProductsLoader(producerIds) {
   });
 }
 
-module.exports = {
+export {
   setDB,
   createLoaders,
   db

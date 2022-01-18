@@ -1,10 +1,10 @@
-const { ApolloServer } = require('apollo-server');
+import { ApolloServer } from 'apollo-server';
 
 function makeServer(config) {
     const server = new ApolloServer(config);
     return server;
 }
 
-module.exports = {
+export {
     makeServer
 }

@@ -1,10 +1,10 @@
-const { setDB, createLoaders } = require('./loaders.js');
-const { typeDefs, resolvers } = require('./schema.js')
-const { queryCalculator } = require('./calculate/calculate.js');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-const { makeServer } = require('./server.js');
-
-const argv = require('minimist')(process.argv.slice(2), {
+import { setDB, createLoaders } from './loaders.js';
+import { typeDefs, resolvers } from './schema.js';
+import { queryCalculator } from 'graphql-result-size';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { makeServer } from './server.js';
+import minimist from 'minimist';
+const argv = minimist(process.argv.slice(2), {
     default: {
         port: 4000,
         terminateEarly: true,

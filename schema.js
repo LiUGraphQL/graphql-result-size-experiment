@@ -1,6 +1,5 @@
-const { gql } = require('apollo-server');
-const { GraphQLError } = require('graphql');
-const _ = require('lodash');
+import { gql } from 'apollo-server';
+import _ from 'lodash';
 
 const typeDefs = gql`
   directive @offer(id:String, relation:String) on FIELD_DEFINITION
@@ -216,4 +215,4 @@ const resolvers = {
     }
 };
 
-module.exports = { typeDefs, resolvers };
+export { typeDefs, resolvers };
