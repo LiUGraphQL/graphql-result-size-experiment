@@ -45,7 +45,7 @@ describe('Basic tests', () => {
         it('single ID value', (done) => {
             const query = '{ Person(nr:1){ nr } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.assert.equal(resultSize, calculateResultSize(data));
                 chai.expect(data).to.eql({ Person: { nr: 1 } });
                 done();
@@ -57,7 +57,7 @@ describe('Basic tests', () => {
         it('single string value', (done) => {
             const query = '{ Person(nr:1){ name } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.assert.equal(resultSize, calculateResultSize(data));
                 chai.expect(data).to.eql({ Person: { name: 'Ruggiero-Delane' } });
                 done();
@@ -69,7 +69,7 @@ describe('Basic tests', () => {
         it('single int value', (done) => {
             const query = '{ Review(nr:1){ rating2 } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.assert.equal(resultSize, calculateResultSize(data));
                 chai.expect(data).to.eql({ Review: { rating2: 10 } });
                 done();
@@ -81,7 +81,7 @@ describe('Basic tests', () => {
         it('single int null value', (done) => {
             const query = '{ Review(nr:1){ rating1 } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.assert.equal(resultSize, calculateResultSize(data));
                 chai.expect(data).to.eql({ Review: { rating1: null } });
                 done();
@@ -93,7 +93,7 @@ describe('Basic tests', () => {
         it('array of strings', (done) => {
             const query = '{ Review(nr:1){ ratings } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.expect(resultSize).to.eql(calculateResultSize(data));
                 chai.expect(data).to.eql({ Review: { ratings: [ null, 10, 10, null ] } });
                 done();
@@ -107,7 +107,7 @@ describe('Basic tests', () => {
         it('array query', (done) => {
             const query = '{ Persons(limit:3){ nr } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.assert.equal(resultSize, calculateResultSize(data));
                 chai.expect(data).to.eql({ Persons: [ { nr: 1 }, { nr: 2 }, { nr: 3 }] });
                 done();
@@ -119,7 +119,7 @@ describe('Basic tests', () => {
         it('object field', (done) => {
             const query = '{ Person(nr:1){ reviews { nr } } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.assert.equal(resultSize, calculateResultSize(data));
                 chai.expect(data).to.eql({"Person":{"reviews":[{"nr":1},{"nr":2},{"nr":3},{"nr":4},{"nr":5},{"nr":6},{"nr":7},{"nr":8},{"nr":9},{"nr":10},{"nr":11},{"nr":12},{"nr":13},{"nr":14},{"nr":15}]}});
                 done();
@@ -131,7 +131,7 @@ describe('Basic tests', () => {
         it('object array field', (done) => {
             const query = '{ Review(nr:1){ reviewer { nr } } }';
             rawRequest(url, query).then(({data, extensions}) => {
-                const { resultSize } = extensions.calculate;
+                const { resultSize } = extensions.response;
                 chai.assert.equal(resultSize, calculateResultSize(data));
                 chai.expect(data).to.eql({ Review: { reviewer: { nr: 1 } } });
                 done();
