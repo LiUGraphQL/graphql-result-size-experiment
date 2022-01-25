@@ -10,7 +10,7 @@ function writeExperimentHeader(path){
     const fields = [
         'queryDir', 'queryFile', 'warmup',
         'cacheHits', 'threshold',
-        'resultSize', 'resultSizeLimit',
+        'resultSize',
         'terminateEarly', 'timeout',
         'calculationTime', 'resultTime',
         'responseTime', 'waitingOnPromises',
@@ -33,7 +33,7 @@ function writeResult(outputFile, result){
     const fields = [
         'queryDir', 'queryFile', 'warmup',
         'cacheHits', 'threshold',
-        'resultSize', 'resultSizeLimit',
+        'resultSize',
         'terminateEarly', 'timeout',
         'calculationTime', 'resultTime',
         'responseTime', 'waitingOnPromises',
@@ -81,12 +81,18 @@ async function run(outputFile, queryDir, warmup, useQueryCalculator, terminateEa
             continue;
         }
 
-        // Optimize for experiments
-        // Include here a list of the configurations known to time out badly. Currently this is only true for blowupQuery4 
-        let timeoutQueries = ['blowupQuery4.graphql'];
-        if(timeoutQueries.includes(queryFile) && ((useQueryCalculator=="true" && terminateEarly == "false") || useQueryCalculator =="false")){
-            console.log("Adding auto-generated line for query that times out.")
-            let line = `${queryDir},${queryFile},NA,NA,${threshold},NA,NA,${terminateEarly},120000,NA,NA,NA,NA,MAX_QUERY_TIME_EXCEEDED,${useQueryCalculator}`;
+        // skip 'blowupQuery4.graphql' unless terminating early
+        if(queryFile == 'blowupQuery4.graphql' && !(terminateEarly == "true" && useQueryCalculator == 'true')){
+            console.log('Adding auto-generated line for query that times out.')
+            let line = `${queryDir},${queryFile},NA,NA,${threshold},NA,NA,${terminateEarly},${threshold},NA,NA,NA,NA,MAX_QUERY_TIME_EXCEEDED,${useQueryCalculator}`;
+            write(outputFile, line);
+            continue;
+        }
+
+        // skip 'extremeBlowupQuery7.graphql' unless terminating early OR threshold is 0
+        if(queryFile == 'extremeBlowupQuery7.graphql' && useQueryCalculator == 'true' && terminateEarly == 'false' && threshold != 0){
+            console.log('Adding auto-generated line for query that times out.')
+            let line = `${queryDir},${queryFile},NA,NA,${threshold},NA,NA,${terminateEarly},${threshold},NA,NA,NA,NA,MAX_QUERY_TIME_EXCEEDED,${useQueryCalculator}`;
             write(outputFile, line);
             continue;
         }
@@ -120,12 +126,6 @@ async function main(){
             const warmup = i < argv.warmups;
             await run(argv.outputFile, argv.queryDir, warmup, argv.useQueryCalculator, argv.terminateEarly, argv.threshold);
         }
-    });
-}
-
-function sleep(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
     });
 }
 
