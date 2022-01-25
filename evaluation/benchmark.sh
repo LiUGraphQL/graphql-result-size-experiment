@@ -18,7 +18,7 @@ earlyTermination(){
     do
         for e in true false
         do
-            for t in 100000 #90000 80000 70000 60000 50000 40000 30000 20000 100000
+            for t in 100000 90000 80000 70000 60000 50000 40000 30000 20000 100000
             do
                 echo "Run with threshold:" $t "terminateEarly is" $e     
                 sh ./run.sh \
