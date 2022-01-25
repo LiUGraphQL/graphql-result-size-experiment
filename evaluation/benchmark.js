@@ -75,14 +75,24 @@ async function runQuery(query){
         });
 }
 
-async function run(outputFile, queryDir, warmup, useQueryCalculator){
+async function run(outputFile, queryDir, warmup, useQueryCalculator, terminateEarly, threshold){
     for(const queryFile of fs.readdirSync(queryDir)){
         if(!queryFile.endsWith('.graphql')){
             continue;
         }
+
+        // Optimize for experiments
+        // Include here a list of the configurations known to time out badly. Currently this is only true for blowupQuery4 
+        let timeoutQueries = ['blowupQuery4.graphql'];
+        if(timeoutQueries.includes(queryFile) && ((useQueryCalculator=="true" && terminateEarly == "false") || useQueryCalculator =="false")){
+            console.log("Adding auto-generated line for query that times out.")
+            let line = `${queryDir},${queryFile},NA,NA,${threshold},NA,NA,${terminateEarly},120000,NA,NA,NA,NA,MAX_QUERY_TIME_EXCEEDED,${useQueryCalculator}`;
+            write(outputFile, line);
+            continue;
+        }
+
         const q = fs.readFileSync(queryDir + queryFile, {encoding:'utf8', flag:'r'});
         const response =  await runQuery(q);
-
         writeResult(outputFile, { ...{ 'queryDir': queryDir, 'queryFile': queryFile, warmup, useQueryCalculator }, ...response });
         //await sleep(500);
     }
@@ -105,8 +115,10 @@ async function main(){
         }
         writeExperimentHeader(argv.outputFile);
         for(let i=0; i < argv.iterations + argv.warmups; i++){
+            console.log(new Date().toISOString())
+            console.log(i + 1, "of", argv.iterations + argv.warmups)
             const warmup = i < argv.warmups;
-            await run(argv.outputFile, argv.queryDir, warmup, argv.useQueryCalculator);
+            await run(argv.outputFile, argv.queryDir, warmup, argv.useQueryCalculator, argv.terminateEarly, argv.threshold);
         }
     });
 }

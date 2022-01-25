@@ -1,50 +1,28 @@
 #/bin/bash
 
+WARMUPS=3
+RUNS=10
+
 dirs=( \
-    ./queries/acyclic/ \
-    ./queries/cyclic/ \
     ./queries/varying/ \
     ./queries/blowup/ \
     ./queries/extreme-blowup/
+    ./queries/acyclic/ \
+    ./queries/cyclic/ \
 )
 
-for d in "${dirs[@]}"
-do
-    sh ./run.sh \
-        -i 20 \
-        -w 5 \
-        -d $d \
-        -c "false" \
-        -o "results/results.csv" \
-        -x "evaluation/database.db"
-done
-
-# high threshold
-for d in "${dirs[@]}"
-do
-    for t in 999999999
-    do
-        sh ./run.sh \
-            -i 20 \
-            -w 5 \
-            -d $d \
-            -t $t \
-            -e "false" \
-            -o "results/results.csv" \
-            -x "evaluation/database.db"
-    done
-done
-
 # check all queries with low/hight threshold and early termination enabled/disabled
+echo "Early Termination"
 for d in "${dirs[@]}"
 do
-    for t in 10000 20000 30000 40000 50000 60000 70000 80000 90000 100000
+    for t in 100000
     do
-        for e in false true
+        echo "Running with threshold: " $t
+        for e in false
         do
             sh ./run.sh \
-                -i 20 \
-                -w 5 \
+                -i $RUNS \
+                -w $WARMUPS \
                 -d $d \
                 -t $t \
                 -e $e \
@@ -54,5 +32,31 @@ do
     done
 done
 
+echo "Baseline: Standard Executor"
+for d in "${dirs[@]}"
+do
+    sh ./run.sh \
+        -i $RUNS \
+        -w $WARMUPS \
+        -d $d \
+        -c "false" \
+        -o "results/results.csv" \
+        -x "evaluation/database.db"
+done
 
-
+echo "Calculate: High threshold"
+# high threshold
+for d in "${dirs[@]}"
+do
+    for t in 999999999
+    do
+        sh ./run.sh \
+            -i $RUNS \
+            -w $WARMUPS \
+            -d $d \
+            -t $t \
+            -e "false" \
+            -o "results/results.csv" \
+            -x "evaluation/database.db"
+    done
+done

@@ -82,7 +82,9 @@ run(){
     --iterations=$i \
     --warmups=$w \
     --queryDir=$d \
-    --useQueryCalculator=$c
+    --useQueryCalculator=$c \
+    --terminateEarly=$e \
+    --threshold=$t
   kill $server
 }
 
