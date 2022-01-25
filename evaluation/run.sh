@@ -14,11 +14,12 @@ help() {
    echo "e     Early termination.  (default: false)"
    echo "d     Query directory (required)."
    echo "x     Database directory."
+   echo "b     Set query timeout."
    echo
 }
 
 # Get the options
-while getopts ":ho:i:w:c:t:e:d:x:" option; do
+while getopts ":ho:i:w:c:t:e:d:x:b:" option; do
     case $option in
       h)  # display Help
         v=true;;
@@ -38,6 +39,8 @@ while getopts ":ho:i:w:c:t:e:d:x:" option; do
         x=$OPTARG;;
       c)  # use query calculator
         c=$OPTARG;;
+      b)  # set query timeout
+        b=$OPTARG;;
       \?) # Invalid option
         echo "Error: Invalid option."
         help
@@ -51,6 +54,7 @@ w=${w:-1}              # warmups
 t=${t:-10000}          # threshold
 e=${e:-true}           # use early termination
 c=${c:-true}           # use query calculator
+b=${b:-120_000}        # timeout for queries
 
 if [ -z "$d" ]; then
   echo "Error: No query directory has been defined."
@@ -66,13 +70,15 @@ run(){
   d=$6  # query directory
   db=$7 # database path
   c=$8  # use calculator executor
+  timeout=$9  # use calculator executor
   echo "Start GraphQL server"
   cd ..
   node --max-old-space-size=8192 ./app.js \
     --useQueryCalculator=$c \
     --threshold=$t \
     --terminateEarly=$e \
-    --db $db &
+    --db $db \
+    --timeout=$timeout &
   server=$!
 
   echo "Run tests"
@@ -88,4 +94,4 @@ run(){
   kill $server
 }
 
-run $o $i $w $t $e $d $x $c
+run $o $i $w $t $e $d $x $c $b
