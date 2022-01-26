@@ -1,11 +1,11 @@
 #/bin/bash
 
-WARMUPS=3
-RUNS=10
+WARMUPS=1
+RUNS=5
 
 dirs=( \
     ./queries/blowup/ \
-    ./queries/extreme-blowup/
+    ./queries/extreme-blowup/ \
     ./queries/varying/ \
     ./queries/acyclic/ \
     ./queries/cyclic/ \
