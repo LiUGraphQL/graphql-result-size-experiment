@@ -33,7 +33,7 @@
     "apollo-server": "3.6.1",
     "dataloader": "2.0.0",
     "graphql": "15.3.0",
-    "graphql-result-size": "git+https://github.com/LiUGraphQL/graphql-result-size.git#866474b00500411dfbac5a9279728483f78a87fb",
+    "graphql-result-size": "git+https://github.com/LiUGraphQL/graphql-result-size.git#c3bfa8003be81d03aea5eec883d3742fe62157ba",
     "minimist": "1.2.5",
     "sqlite3": "5.0.2"
   },
